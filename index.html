@@ -5545,11 +5545,15 @@ function welcome(){
   $('#wGo').onclick=()=>{S.name=$('#wName').value.trim();S.seenWelcome=true;save();closeModal();SND.ctx();renderMap();};}
 
 /* ===== Lehrkraftbereich ===== */
+/* Lehrkraftcode: im Quelltext steht nur ein Prüfwert (SHA-256), nicht der Code selbst. Groß- und Kleinschreibung, Leerzeichen und Bindestriche zählen nicht. */
+const T_HASH='93570bc47135d3c0e1bdb38d0c2689cbd0541a270f0308d352b09eb1206f4e35',TG={n:0,until:0};
+function sha256(str){const b=new TextEncoder().encode(str),K=[],H=[1779033703,3144134277,1013904242,2773480762,1359893119,2600822924,528734635,1541459225];let n=2,c=0;while(c<64){let p=1;for(let d=2;d*d<=n;d++)if(n%d===0){p=0;break;}if(p){K[c++]=(Math.pow(n,1/3)%1)*4294967296|0;}n++;}const l=b.length,L=((l+9+63)>>6)<<6,m=new Uint8Array(L);m.set(b);m[l]=0x80;const bits=l*8;for(let i=0;i<4;i++)m[L-1-i]=(bits>>>(8*i))&255;const w=new Array(64),r=(x,k)=>(x>>>k)|(x<<(32-k));for(let o=0;o<L;o+=64){for(let i=0;i<16;i++)w[i]=(m[o+4*i]<<24)|(m[o+4*i+1]<<16)|(m[o+4*i+2]<<8)|m[o+4*i+3];for(let i=16;i<64;i++){const s0=r(w[i-15],7)^r(w[i-15],18)^(w[i-15]>>>3),s1=r(w[i-2],17)^r(w[i-2],19)^(w[i-2]>>>10);w[i]=(w[i-16]+s0+w[i-7]+s1)|0;}let [a,bb,cc,d,e,f,g,h]=H;for(let i=0;i<64;i++){const t1=(h+(r(e,6)^r(e,11)^r(e,25))+((e&f)^(~e&g))+K[i]+w[i])|0,t2=((r(a,2)^r(a,13)^r(a,22))+((a&bb)^(a&cc)^(bb&cc)))|0;h=g;g=f;f=e;e=(d+t1)|0;d=cc;cc=bb;bb=a;a=(t1+t2)|0;}H[0]=(H[0]+a)|0;H[1]=(H[1]+bb)|0;H[2]=(H[2]+cc)|0;H[3]=(H[3]+d)|0;H[4]=(H[4]+e)|0;H[5]=(H[5]+f)|0;H[6]=(H[6]+g)|0;H[7]=(H[7]+h)|0;}return H.map(x=>(x>>>0).toString(16).padStart(8,'0')).join('');}
+function tOk(v){return sha256('pixel-archipel:'+String(v).toLowerCase().replace(/[\s\-_]/g,''))===T_HASH;}
 function teacherGate(){
   modal('<h2>Bereich für Lehrkräfte</h2><p style="margin:0">Hier gibt es Musterlösungen, Freischaltungen und den Bezug zum Kernlehrplan. Bitte den Code eingeben.</p>'+
     '<div class="field"><label for="tCode">Code</label><input id="tCode" autocomplete="off"></div><div id="tErr" class="note"></div>'+
     '<div class="row end"><button class="btn" data-close>Abbrechen</button><button class="btn primary" id="tGo">Öffnen</button></div>');
-  const go=()=>{if($('#tCode').value.trim().toLowerCase()==='lehrkraft')teacher();else $('#tErr').textContent='Der Code stimmt nicht.';};
+  const go=()=>{const w=Date.now()<(TG.until||0);if(w){$('#tErr').textContent='Zu viele Versuche. Bitte '+Math.ceil((TG.until-Date.now())/1000)+' Sekunden warten.';return;}if(tOk($('#tCode').value)){TG.n=0;teacher();}else{TG.n++;if(TG.n>=5){TG.n=0;TG.until=Date.now()+30000;$('#tErr').textContent='Zu viele Versuche. Bitte 30 Sekunden warten.';}else $('#tErr').textContent='Der Code stimmt nicht.';}};
   $('#tGo').onclick=go;$('#tCode').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();}if(e.key==='Enter')go();};$('#tCode').focus();}
 function csv(){const rows=[['Name','Level','Titel','Konzept','Sterne','Versuche','Tipps','Blöcke (beste)','Blöcke (ideal)','gelöst am','Sprache','Goldstücke gesamt']];
   LEVELS.forEach((l,i)=>{const p=S.prog[l.id]||{};rows.push([S.name||'',ISLANDS[l.isl].name+' '+localNo(i)[0],l.name,l.concept,p.stars||0,p.tries||0,p.hints||0,p.best==null?'':p.best,l.type||l.village?'':l.ideal,p.solvedAt?p.solvedAt.slice(0,10):'',l.type?'':(p.pyDone?'Python':p.stars?'Blöcke':''),S.coins||0]);});
