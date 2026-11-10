@@ -383,6 +383,12 @@ details.trl{margin-top:.5rem;border-top:1px dashed var(--line);padding-top:.35re
 .bdict ul{list-style:none;margin:6px 0;padding:0}.bdl li{display:flex;gap:10px;align-items:flex-start;padding:5px 0;border-top:1px solid var(--line)}.bdb{flex:0 0 auto;color:#fff;font-weight:700;border-radius:8px;padding:3px 9px;font-size:.9rem;min-width:9.5em}.bdx{flex:1;font-size:.92rem;line-height:1.35}
 .bdt{display:block;margin-top:2px;color:var(--muted)}.bdh{margin:8px 0 2px;font-weight:700;font-size:.9rem}.bdc{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:4px 12px}.bdc li{font-size:.9rem}.bdc .bdt{font-size:.85rem}
 @media (max-width:500px){.bdl li{flex-direction:column;gap:3px}.bdb{min-width:0}}
+.cvdrop{display:flex;flex-direction:column;align-items:center;gap:4px;border:2px dashed var(--line);border-radius:14px;padding:18px;margin:12px 0;cursor:pointer;text-align:center;background:var(--chip);color:var(--ink)}.cvdrop.over{border-color:var(--accent)}.cvdrop input{position:absolute;opacity:0;width:1px;height:1px}.cvdrop span{font-weight:700}.cvdrop:focus-within{outline:3px solid var(--accent)}
+.cvt td,.cvt th{vertical-align:top}.cvt .cv0{background:transparent}.cvt .cv1{background:color-mix(in srgb,#2ea05a 14%,var(--panel))}.cvt .cv2{background:color-mix(in srgb,#2ea05a 26%,var(--panel))}.cvt .cv3{background:color-mix(in srgb,#2ea05a 38%,var(--panel))}.cvt .cv4{background:color-mix(in srgb,#2ea05a 50%,var(--panel))}
+.cvt tr.sel td{outline:2px solid var(--accent);outline-offset:-2px}.cvt tr.hard td:first-child{box-shadow:inset 4px 0 0 #e0a800}
+.lnk{background:none;border:0;padding:4px 0;font:inherit;font-weight:700;color:var(--ink);text-decoration:underline;cursor:pointer;min-height:32px;text-align:left}
+.cvchip{display:inline-block;border-radius:999px;padding:1px 8px;font-size:.8rem;font-weight:700;border:1.5px solid;color:var(--ink);margin:1px 0;white-space:nowrap}.cvchip.kopen{border-color:#8a8a8a;background:color-mix(in srgb,#8a8a8a 16%,var(--panel))}.cvchip.ktries{border-color:#d18a00;background:color-mix(in srgb,#d18a00 16%,var(--panel))}.cvchip.kchk{border-color:#d4502a;background:color-mix(in srgb,#d4502a 16%,var(--panel))}.cvchip.ksol{border-color:#7b4fd0;background:color-mix(in srgb,#7b4fd0 16%,var(--panel))}.cvchip.kround{border-color:#2f6fd0;background:color-mix(in srgb,#2f6fd0 16%,var(--panel))}
+.cvt td[class^="cv"] .note{color:var(--ink)}.cvdet{border:2px solid var(--line);border-radius:14px;padding:4px 14px 10px;margin:12px 0;background:var(--panel)}.cvdet h4{margin:10px 0 4px}.cvtabs{flex-wrap:wrap}
 </style>
 
 <div id="nojs" style="margin:16px;padding:16px 18px;border-radius:14px;background:#fff3cd;color:#3d2b00;border:2px solid #e0a32e;font:17px/1.5 Verdana,sans-serif;position:relative;z-index:50">
@@ -3394,7 +3400,7 @@ function showSaves(){
   modal('<h2>Spielstand</h2>'+
    '<p style="margin:0">'+(easy?'Dein Spiel wird nur auf diesem Gerät gespeichert. Sichere es, dann verlierst du nichts.':'Dein Fortschritt wird automatisch in diesem Browser gespeichert. Auf Schulrechnern wird der Browser aber oft gelöscht. Sichere deinen Spielstand deshalb am Ende der Stunde, dann kannst du an jedem Gerät weiterspielen.')+'</p>'+
    '<div class="msg info"><span>Jetzt: '+summary(Object.assign(saveData(false),{savedAt:null}))+'</span></div>'+
-   '<h3>1. Als Datei sichern</h3><p class="note" style="margin:0">'+(easy?'Die Datei kommt in deinen Ordner.':'Die Datei enthält auch deine Programme. Lege sie in deinen Ordner, zum Beispiel auf dem Schulnetz oder einem USB-Stick.')+'</p>'+
+   '<div class="field"><label for="svName">'+(easy?'Dein Name':'Dein Name (damit deine Lehrkraft die Datei zuordnen kann)')+'</label><input id="svName" maxlength="40" autocomplete="off" value="'+esc(S.name||'')+'" placeholder="Vorname und erster Buchstabe vom Nachnamen"></div>'+'<h3>1. Als Datei sichern</h3><p class="note" style="margin:0">'+(easy?'Die Datei kommt in deinen Ordner.':'Die Datei enthält auch deine Programme. Lege sie in deinen Ordner, zum Beispiel auf dem Schulnetz oder einem USB-Stick.')+'</p>'+
    '<div class="row"><button class="btn primary" id="svFile">💾 Datei speichern</button><button class="btn" id="ldFile">📂 Datei laden</button><input type="file" id="ldIn" accept=".json,application/json" hidden></div>'+
    '<h3>2. Als Speichercode</h3><p class="note" style="margin:0">'+(easy?'Kopiere den Code. Schreib ihn zum Beispiel ins Heft oder schick ihn dir.':'Der Code enthält Sterne, Goldstücke und Werkstatt, aber nicht deine Programme. Du kannst ihn kopieren und zum Beispiel in eine Notiz oder ins Lernportal einfügen.')+'</p>'+
    '<div class="row"><button class="btn" id="mkCode">🔑 Code erzeugen</button></div><textarea class="csv" id="codeT" readonly hidden></textarea>'+
@@ -3402,7 +3408,7 @@ function showSaves(){
    '<div id="svMsg" class="note" role="status"></div>'+
    '<div class="row end"><button class="btn primary" data-close>Fertig</button></div>');
   const msg=t=>{$('#svMsg').innerHTML=t;};
-  $('#svFile').onclick=async()=>{const r=await downloadSave();msg(r==='ok'?'<b>Gespeichert.</b> Schau in deinem Download-Ordner nach.':r==='declined'?'Nicht gespeichert.':'Speichern ging hier nicht. Nimm stattdessen den Speichercode.');};
+  $('#svFile').onclick=async()=>{const nm=$('#svName').value.trim();if(!nm){msg('<b>Bitte zuerst deinen Namen eintragen.</b> Sonst weiß deine Lehrkraft nicht, von wem die Datei ist.');$('#svName').focus();return;}if(nm!==S.name){S.name=nm;save();}const r=await downloadSave();msg(r==='ok'?'<b>Gespeichert.</b> Die Datei liegt in deinem Download-Ordner. Lege sie in den Klassenordner auf dem Schulserver, wenn deine Lehrkraft das möchte.':r==='declined'?'Nicht gespeichert.':'Speichern ging hier nicht. Nimm stattdessen den Speichercode.');};
   $('#ldFile').onclick=()=>$('#ldIn').click();
   const ask=o=>{if(!validSave(o)){msg('<b>Das ist kein Pixel-Spielstand.</b>');return;}
     msg('Gefunden: '+summary(o)+'<br>Dein jetziger Spielstand auf diesem Gerät wird ersetzt. <button class="btn primary" id="ldOk" style="margin-top:.3rem">Ja, laden</button>');
@@ -3480,10 +3486,10 @@ function openPuzzle(){
 }
 function renderRounds(){const el=$('#variants');const R=cur.rounds;if(!R){el.hidden=true;return;}el.hidden=false;
   el.innerHTML='<span>Runden:</span>'+R.map((r,i)=>{const s=PZ.state[i];return '<button disabled aria-pressed="'+(i===PZ.round)+'" class="'+(s==='ok'?'ok':'')+'">'+(s==='ok'?'✓ ':'')+'Runde '+(i+1)+'</button>';}).join('');}
-function puzzleWrong(text){PZ.wrong++;const pr=P_(cur.id);pr.tries++;save();SND.play('fail');showMsg('bad',text);}
+function puzzleWrong(text){PZ.wrong++;const pr=P_(cur.id);pr.tries++;if(cur.rounds){pr.errR=pr.errR||{};pr.errR[PZ.round]=(pr.errR[PZ.round]||0)+1;}save();SND.play('fail');showMsg('bad',text);}
 function puzzleStars(){return PZ.wrong===0?3:PZ.wrong<=2?2:1;}
 function puzzleWin(extra){const pr=P_(cur.id);pr.tries++;save();const st0=puzzleStars(),lvl=cur;
-  askCheck(ok=>{if(lvl!==cur)return;const st=ok?st0:Math.min(st0,2);
+  askCheck(ok=>{if(lvl!==cur)return;if(lvl.check){pr.chkOk=!!(pr.chkOk||ok);if(!ok)pr.chkNo=(pr.chkNo||0)+1;save();}const st=ok?st0:Math.min(st0,2);
   const txt=st===3?'Ohne einen einzigen Fehlversuch. Stark!':st===2?'Mit '+PZ.wrong+' Fehlversuch'+(PZ.wrong===1?'':'en')+'. Ohne Fehlversuch gibt es 3 Sterne.':'Geschafft! Beim nächsten Mal mit weniger Fehlversuchen?';
   celebrate(st,txt+(ok||!cur.check?'':' Den 3. Stern gibt es mit der richtigen Antwort auf die Verstehensfrage. Spiel das Level einfach noch einmal.'),extra);});}
 
@@ -5104,6 +5110,86 @@ function renderBDict(types){const box=$('#bDict');if(!box)return;const l=lang2()
   const conds=cl.length?'<p class="bdh">Bedingungen im Block „falls“</p><ul class="bdc">'+cl.map(c=>'<li><b>'+esc(c)+'</b>'+(T&&T.cond&&T.cond[c]?tr(T.cond[c]):'')+'</li>').join('')+'</ul>':'';
   box.hidden=false;box.innerHTML='<summary>📖 Block-Wörterbuch'+(l?' · '+esc(LANGS[l].n):'')+'</summary><ul class="bdl">'+rows+'</ul>'+conds;if(l)box.open=true;}
 
+/* ===== Klassenübersicht für Lehrkräfte: Spielstand-Dateien einlesen (nur Anzeige, nichts wird gespeichert) ===== */
+const CV={list:[],tab:'sus',sel:null,bad:0};
+function cvIsl(){const s=new Set();CV.list.forEach(o=>{if(o.cls&&Array.isArray(o.cls.islands))o.cls.islands.forEach(k=>s.add(k));});
+  return s.size?[...s].filter(k=>ISLANDS[k]).sort((a,b)=>a-b):ISLANDS.map((x,k)=>k);}
+function cvLv(k){return LEVELS.map((l,i)=>[l,i]).filter(([l])=>l.isl===k);}
+function cvP(o,l){return o.prog[l.id]||{};}
+function cvTries(p){return p.solveTries!=null?p.solveTries:(p.stars?p.tries||0:null);}
+function cvFlags(o){const f=[];const I=cvIsl();LEVELS.forEach((l,i)=>{if(!I.includes(l.isl))return;const p=cvP(o,l),nm=ISLANDS[l.isl].name+' '+localNo(i)[0]+' „'+l.name+'“';const add=(k,t)=>f.push({k,l,nm,t});
+  if((p.tries||0)>0&&!p.stars)add('open','begonnen, noch nicht gelöst ('+(p.tries||0)+(p.tries===1?' Versuch':' Versuche')+')');
+  const st=cvTries(p);if(p.stars&&st!=null&&st>=5)add('tries',st+' Versuche bis zur Lösung');
+  if(l.check&&(p.chkNo||0)>0&&!p.chkOk)add('chk','Verstehensfrage falsch beantwortet');
+  if((p.hints||0)>=3)add('sol','Lösungstipp angesehen');
+  if(p.errR&&l.rounds)Object.entries(p.errR).forEach(([r,n])=>{if(n>=2&&l.rounds[r]){const q=String(l.rounds[r].q||'');add('round','Runde '+(+r+1)+': '+n+' Fehlversuche'+(q?' („'+q.slice(0,70)+(q.length>70?'…':'')+'“)':''));}});});return f;}
+const CV_KIND={open:['offen','Level mit aufgehobener Blockgrenze oder in Partnerarbeit wiederholen, ersten Tipp gemeinsam lesen.'],tries:['viele Versuche','Lösungsweg erklären lassen: Hat die Person geplant oder probiert? Gestufte Tipps und Schrittmodus zeigen.'],chk:['Verständnis','Gelöst, aber Verstehensfrage falsch: im Gespräch nachfragen, Begriff an einem zweiten Beispiel klären.'],sol:['Lösung gesehen','Ein ähnliches Level ohne Tipps lösen lassen, um zu prüfen, ob die Idee verstanden ist.'],round:['Fehler in Runde','Genau diese Runde gemeinsam ansehen, die Begründung im gelben Kasten vorlesen lassen.']};
+function cvPct(o,k){const L=cvLv(k);const st=L.reduce((a,[l])=>a+(cvP(o,l).stars||0),0);return [st,L.length*3];}
+function cvCls(a,b){if(!b)return 'cv0';const q=a/b;return q===0?'cv0':q<.34?'cv1':q<.67?'cv2':q<1?'cv3':'cv4';}
+function classView(){
+  modal('<h2>Klassenübersicht</h2><p style="margin:0">So geht es: Die SuS speichern am Ende der Stunde über „💾 Spielstand“ eine Datei und legen sie in den Klassenordner auf dem Schulserver. Hier wählst du alle Dateien auf einmal aus. Die Daten werden nur angezeigt, nicht gespeichert und nicht verschickt. Nach dem Schließen sind sie wieder weg.</p>'+
+    '<label class="cvdrop" id="cvDrop"><input type="file" id="cvIn" accept=".json,application/json" multiple><span>📂 Spielstand-Dateien auswählen oder hierher ziehen</span><small>Mehrfachauswahl: Strg oder Umschalt gedrückt halten, auf dem iPad „Auswählen“ tippen.</small></label>'+
+    '<div class="row"><button class="btn" id="cvDemo">Mit Beispieldaten ausprobieren</button></div><div id="cvOut" aria-live="polite"></div>'+
+    '<div class="row end"><button class="btn primary" data-close>Schließen</button></div>','wide');
+  const inp=$('#cvIn'),drop=$('#cvDrop');inp.onchange=()=>cvRead(inp.files);
+  drop.ondragover=e=>{e.preventDefault();drop.classList.add('over');};drop.ondragleave=()=>drop.classList.remove('over');
+  drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');cvRead(e.dataTransfer.files);};
+  $('#cvDemo').onclick=()=>{CV.list=cvDemo();CV.bad=0;CV.sel=null;cvRender();};
+  if(CV.list.length)cvRender();}
+async function cvRead(files){const by={};CV.list.forEach(o=>by[(o.name||'').toLowerCase()]=o);let bad=0;
+  for(const f of [...files]){try{const o=JSON.parse(await f.text());if(!validSave(o)){bad++;continue;}o.name=String(o.name||f.name.replace(/\.json$/i,'')).slice(0,40);
+    const k=o.name.toLowerCase();if(!by[k]||String(o.savedAt||'')>String(by[k].savedAt||''))by[k]=o;}catch(e){bad++;}}
+  CV.list=Object.values(by).sort((a,b)=>a.name.localeCompare(b.name,'de'));CV.bad=bad;CV.sel=null;cvRender();}
+function cvRender(){const out=$('#cvOut');if(!out)return;const I=cvIsl(),n=CV.list.length;
+  if(!n){out.innerHTML='<p class="note">'+(CV.bad?CV.bad+' Datei(en) waren keine Spielstände.':'Noch keine Dateien eingelesen.')+'</p>';return;}
+  const dates=CV.list.map(o=>o.savedAt).filter(Boolean).sort();
+  let h='<div class="msg info"><span><b>'+n+' Spielstände</b> eingelesen'+(dates.length?', gesichert zwischen '+new Date(dates[0]).toLocaleDateString('de-DE')+' und '+new Date(dates[dates.length-1]).toLocaleDateString('de-DE'):'')+'.'+(CV.bad?' '+CV.bad+' Datei(en) übersprungen, weil sie kein Spielstand waren.':'')+'</span></div>'+
+    '<div class="row cvtabs" role="tablist"><button class="btn'+(CV.tab==='sus'?' primary':'')+'" data-cvt="sus" role="tab" aria-selected="'+(CV.tab==='sus')+'">Nach SuS</button><button class="btn'+(CV.tab==='lv'?' primary':'')+'" data-cvt="lv" role="tab" aria-selected="'+(CV.tab==='lv')+'">Nach Level</button><button class="btn" id="cvCsv">Tabelle herunterladen (CSV)</button></div>';
+  if(CV.tab==='sus'){
+    h+='<div class="tbl"><table class="cvt"><thead><tr><th>Name</th>'+I.map(k=>'<th>'+esc(ISLANDS[k].name)+'</th>').join('')+'<th>Gesamt</th><th>Hinweise</th></tr></thead><tbody>'+
+      CV.list.map((o,j)=>{let A=0,B=0;const cells=I.map(k=>{const [a,b]=cvPct(o,k);A+=a;B+=b;return '<td class="'+cvCls(a,b)+'">'+a+' / '+b+'</td>';}).join('');const fl=cvFlags(o);
+        const cnt={};fl.forEach(x=>cnt[x.k]=(cnt[x.k]||0)+1);
+        return '<tr'+(CV.sel===j?' class="sel"':'')+'><td><button class="lnk" data-cvs="'+j+'">'+esc(o.name||'ohne Namen')+'</button></td>'+cells+'<td class="'+cvCls(A,B)+'"><b>'+A+' / '+B+'</b></td><td>'+(fl.length?Object.entries(cnt).map(([k,c])=>'<span class="cvchip k'+k+'">'+c+'× '+CV_KIND[k][0]+'</span>').join(' '):'<span class="note">keine</span>')+'</td></tr>';}).join('')+'</tbody></table></div>'+
+      '<p class="note">Zahlen = Sterne von möglichen Sternen. Farbe: hell = wenig, kräftig = viel geschafft. Auf einen Namen tippen für Details.</p>';
+    if(CV.sel!=null&&CV.list[CV.sel])h+=cvDetail(CV.list[CV.sel]);}
+  else h+=cvLevels();
+  out.innerHTML=h;
+  out.querySelectorAll('[data-cvt]').forEach(b=>b.onclick=()=>{CV.tab=b.dataset.cvt;cvRender();});
+  out.querySelectorAll('[data-cvs]').forEach(b=>b.onclick=()=>{const j=+b.dataset.cvs;CV.sel=CV.sel===j?null:j;cvRender();const d=$('#cvDet');if(d)d.scrollIntoView({block:'nearest'});});
+  $('#cvCsv').onclick=cvCsvDl;}
+function cvDetail(o){const I=cvIsl(),fl=cvFlags(o);const kinds=[...new Set(fl.map(x=>x.k))];
+  let h='<div id="cvDet" class="cvdet"><h3>'+esc(o.name||'ohne Namen')+(o.savedAt?' <span class="note">gesichert am '+new Date(o.savedAt).toLocaleDateString('de-DE')+'</span>':'')+'</h3>';
+  if(fl.length){{const g=new Map();fl.forEach(x=>{if(!g.has(x.nm))g.set(x.nm,[]);g.get(x.nm).push(x);});h+='<h4>Diagnosehinweise ('+g.size+' Level)</h4><ul class="hintlist cvfl">'+[...g].map(([nm,xs])=>'<li><b>'+esc(nm)+'</b> '+[...new Set(xs.map(x=>x.k))].map(k=>'<span class="cvchip k'+k+'">'+CV_KIND[k][0]+'</span>').join(' ')+'<br><span>'+esc(xs.map(x=>x.t).join(' · '))+'</span></li>').join('')+'</ul>';}h+='<h4>Mögliche nächste Schritte</h4><ul class="hintlist">'+kinds.map(k=>'<li><b>'+CV_KIND[k][0]+':</b> '+esc(CV_KIND[k][1])+'</li>').join('')+'</ul>';}
+  else h+='<p class="note">Keine Auffälligkeiten in den eingelesenen Daten.</p>';
+  h+='<div class="tbl"><table class="cvt"><thead><tr><th>Level</th><th>Sterne</th><th>Versuche bis Lösung</th><th>Versuche gesamt</th><th>Tipps</th><th>Verstehensfrage</th><th>Fehler je Runde</th><th>gelöst am</th></tr></thead><tbody>'+
+    I.map(k=>cvLv(k).map(([l,i])=>{const p=cvP(o,l);const er=p.errR?Object.entries(p.errR).map(([r,n])=>'R'+(+r+1)+': '+n).join(', '):'';
+      return '<tr><td>'+esc(ISLANDS[k].name)+' '+localNo(i)[0]+'<br><span class="note">'+esc(l.name)+'</span></td><td class="'+cvCls(p.stars||0,3)+'">'+(p.stars?'★'.repeat(p.stars):'–')+'</td><td class="n">'+(cvTries(p)??'–')+'</td><td class="n">'+(p.tries||0)+'</td><td class="n">'+(p.hints||0)+'</td><td>'+(!l.check?'<span class="note">keine</span>':p.chkOk?'✓ richtig'+(p.chkNo?' (vorher '+p.chkNo+'× falsch)':''):p.chkNo?'✗ falsch':'–')+'</td><td>'+esc(er)+'</td><td>'+(p.solvedAt?new Date(p.solvedAt).toLocaleDateString('de-DE'):'')+'</td></tr>';}).join('')).join('')+'</tbody></table></div></div>';
+  return h;}
+function cvLevels(){const I=cvIsl(),n=CV.list.length;const rows=[];
+  I.forEach(k=>cvLv(k).forEach(([l,i])=>{const ps=CV.list.map(o=>cvP(o,l));const started=ps.filter(p=>(p.tries||0)>0||p.stars).length,solved=ps.filter(p=>p.stars).length;
+    const tr=ps.map(cvTries).filter(x=>x!=null);const avg=tr.length?tr.reduce((a,b)=>a+b,0)/tr.length:null;
+    const ck=l.check?ps.filter(p=>p.chkOk||p.chkNo):[];const ckOk=ck.filter(p=>p.chkOk&&!p.chkNo).length;const sol=ps.filter(p=>(p.hints||0)>=3).length;
+    const er={};ps.forEach(p=>p.errR&&Object.entries(p.errR).forEach(([r,c])=>er[r]=(er[r]||0)+c));const top=Object.entries(er).sort((a,b)=>b[1]-a[1])[0];
+    const hard=started>=2&&(solved/started<.6||(avg!=null&&avg>=4)||(ck.length>=2&&ckOk/ck.length<.6));
+    rows.push('<tr'+(hard?' class="hard"':'')+'><td>'+esc(ISLANDS[k].name)+' '+localNo(i)[0]+'<br><span class="note">'+esc(l.name)+'</span></td><td class="'+cvCls(solved,n)+'">'+solved+' / '+n+(started>solved?'<br><span class="note">'+(started-solved)+' begonnen</span>':'')+'</td><td class="n">'+(avg==null?'–':avg.toFixed(1))+'</td><td>'+(l.check?(ck.length?ckOk+' / '+ck.length+' im ersten Anlauf':'–'):'<span class="note">keine</span>')+'</td><td class="n">'+sol+'</td><td>'+(top?'Runde '+(+top[0]+1)+' ('+top[1]+' Fehler)<br><span class="note">'+esc(String((l.rounds[top[0]]||{}).q||'').slice(0,60))+'</span>':'')+'</td><td>'+(hard?'⚠️ besprechen':'')+'</td></tr>');}));
+  return '<div class="tbl"><table class="cvt"><thead><tr><th>Level</th><th>gelöst</th><th>Ø Versuche bis Lösung</th><th>Verstehensfrage richtig</th><th>Lösungstipp gesehen</th><th>häufigste Fehlerrunde</th><th></th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div>'+
+    '<p class="note">⚠️ markiert Level, bei denen weniger als 60 % der SuS, die angefangen haben, es gelöst haben, im Schnitt 4 oder mehr Versuche nötig waren oder die Verstehensfrage oft falsch war. Diese Level eignen sich für eine gemeinsame Besprechung im Plenum. Die Grenzen sind gesetzte Faustwerte, keine geprüften Normen.</p>';}
+function cvCsv(){const rows=[['Name','gesichert am','Insel','Level','Titel','Sterne','Versuche bis Lösung','Versuche gesamt','Tipps','Verstehensfrage','Fehler je Runde','gelöst am']];
+  CV.list.forEach(o=>cvIsl().forEach(k=>cvLv(k).forEach(([l,i])=>{const p=cvP(o,l);rows.push([o.name||'',o.savedAt?o.savedAt.slice(0,10):'',ISLANDS[k].name,localNo(i)[0],l.name,p.stars||0,cvTries(p)??'',p.tries||0,p.hints||0,!l.check?'':p.chkOk?(p.chkNo?'richtig nach '+p.chkNo+'x falsch':'richtig'):p.chkNo?'falsch':'',p.errR?Object.entries(p.errR).map(([r,n])=>'R'+(+r+1)+':'+n).join(' '):'',p.solvedAt?p.solvedAt.slice(0,10):'']);})));
+  return '﻿'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');}
+async function cvCsvDl(){const data=cvCsv(),d=new Date(),fn='Klassenuebersicht_'+d.toISOString().slice(0,10)+'.csv';
+  if(DL){try{await DL.save({filename:fn,data});return;}catch(e){}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'text/csv;charset=utf-8'}));a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);}
+/* Erfundene Beispieldaten zum Ausprobieren */
+function cvDemo(){let seed=7;const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
+  const names=['Beispiel A','Beispiel B','Beispiel C','Beispiel D','Beispiel E','Beispiel F','Beispiel G','Beispiel H'];
+  return names.map((nm,j)=>{const prog={},skill=.35+j*.08;LEVELS.forEach((l,i)=>{const pos=i/LEVELS.length;if(rnd()>skill+.45-pos*.3)return;
+    const solved=rnd()<skill+.3,tries=1+Math.floor(rnd()*(solved?5:7)*(1.2-skill));const p={tries:tries,hints:rnd()<.25?Math.ceil(rnd()*3):0,firstAt:'2026-11-03T09:00:00Z'};
+    if(solved){p.stars=tries<=1?3:tries<=3?2:1;p.solveTries=tries;p.solvedAt='2026-11-0'+(3+Math.floor(rnd()*6))+'T10:00:00Z';}
+    if(l.check&&solved){if(rnd()<.75)p.chkOk=true;else p.chkNo=1;}
+    if(l.rounds&&tries>1){p.errR={};p.errR[Math.floor(rnd()*l.rounds.length)]=tries-1;}prog[l.id]=p;});
+    return {app:'pixel-archipel',v:1,name:nm,savedAt:'2026-11-10T12:00:00Z',prog,cls:null};});}
+
 /* ===== Zustand ===== */
 const KEY='pixel-archipel-v1';
 let S={name:'',prog:{},settings:{sound:true,easy:false,calm:false,speed:1,unlockAll:false,noLimit:false,pyOn:true},seenWelcome:false};
@@ -5284,7 +5370,7 @@ async function playEvents(evs,tok){
 
 /* ===== Level öffnen ===== */
 function openLevel(i,opts){
-  stopRun();cur=LEVELS[i];const isl=ISLANDS[cur.isl];
+  stopRun();cur=LEVELS[i];const isl=ISLANDS[cur.isl];{const q=P_(cur.id);if(!q.firstAt){q.firstAt=new Date().toISOString();save();}}
   $('#mapView').hidden=true;$('#shopView').hidden=true;$('#levelView').hidden=false;
   const [ln,lt]=localNo(i);
   $('#lvlIsl').textContent=cur.village?isl.name+' · Freier Aufbau · Schicht '+(VSt().shift+1):isl.name+' · '+(cur.expert?'Expertenlevel '+String(ln).slice(1):'Level '+ln)+' von '+lt+' · '+cur.concept;
@@ -5393,7 +5479,7 @@ async function win(prog){
 }
 async function celebrate(stars,txt,lesson,already){
   const pr=P_(cur.id),lvl=cur,tok=token;const firstTime=!pr.stars;
-  const cres=awardCoins(pr,stars,isPy());
+  if(firstTime&&stars)pr.solveTries=pr.tries;const cres=awardCoins(pr,stars,isPy());
   pr.stars=Math.max(pr.stars||0,stars);pr.solvedAt=new Date().toISOString();save();renderCores();
   if(!already)SND.play('win');
   FX.confetti();
@@ -5477,7 +5563,7 @@ function teacher(){
     '<label><input type="checkbox" id="tShop" '+(s.shopOn?'checked':'')+'><span><b>Goldstücke und Werkstatt</b><small>Goldstücke für gelöste Level und neue Sterne, Python-Lösungen zählen doppelt. Damit kauft man nur Aussehen für die Figur, die Sterne bleiben unberührt.</small></span></label>'+
     '<label><input type="checkbox" id="tBox" '+(s.boxOn?'checked':'')+'><span><b>Überraschungskiste anbieten</b><small>Zufallsbelohnung gegen Goldstücke, Wahrscheinlichkeiten sichtbar, keine Doppelten, kein echtes Geld. Ausschalten, wenn Zufallsbelohnungen in der Lerngruppe nicht gewünscht sind.</small></span></label>'+
     '<label><input type="checkbox" id="tNoLimit" '+(s.noLimit?'checked':'')+'><span><b>Blockgrenzen aufheben</b><small>Für SuS mit Förderbedarf Lernen: Lösen zuerst ohne Platzdruck, Sterne zeigen trotzdem, ob es kürzer geht.</small></span></label></div>'+
-    ccBuilderHtml()+'<h3>Übersicht, KLP-Bezug und Fortschritt dieses Geräts</h3>'+
+    '<h3>Klassenübersicht</h3><p class="note" style="margin:0">Spielstand-Dateien der SuS (zum Beispiel aus dem Klassenordner auf dem Schulserver) einlesen und Fortschritt, Fehlversuche und Verstehensfragen der ganzen Klasse sehen. Die Dateien werden nur angezeigt, nicht gespeichert oder verschickt.</p><div class="row"><button class="btn primary" id="clsView">📊 Klassenübersicht öffnen</button></div>'+ccBuilderHtml()+'<h3>Übersicht, KLP-Bezug und Fortschritt dieses Geräts</h3>'+
     '<div class="tbl"><table><thead><tr><th>Nr.</th><th>Level</th><th>Konzept</th><th>KLP Inf 5/6</th><th>WP-KLP</th><th>Blöcke ideal</th><th>Sterne</th><th>Versuche / Tipps</th><th>Muster</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
     '<p class="note" style="margin:0">Kennungen aus dem Projekt-Kompetenzraster (IF1 = Information und Daten, IF2 = Algorithmen im KLP Informatik 5/6, MSB NRW 2021. WP8 = WP-KLP GE/RS bis Ende Klasse 8, WPG = WP-KLP Gymnasium, MSB NRW 2023). Die Zuordnung ist eine fachdidaktische Einschätzung, keine amtliche Festlegung.</p>'+
     '<h3>Diagnose je Insel</h3><ul class="hintlist">'+ISLANDS.map(x=>'<li><b>'+esc(x.name)+' ('+esc(x.concept)+'):</b> '+esc(x.diag)+'</li>').join('')+'</ul>'+
@@ -5485,7 +5571,7 @@ function teacher(){
     '<h3>Fortschritt exportieren</h3><p class="note" style="margin:0">Fortschritt wird automatisch nur in diesem Browser gespeichert. SuS sichern ihn selbst über „💾 Spielstand“ oben (als Datei mit Programmen oder als Speichercode ohne Programme) und laden ihn an jedem Gerät wieder. Lehrkraft-Einstellungen bleiben dabei die des Geräts. Für eine Übersicht die Zeilen kopieren und in eine Tabelle einfügen (Trennzeichen Semikolon).</p>'+
     '<textarea class="csv" id="csvT" readonly>'+esc(csv())+'</textarea>'+
     '<div class="row end"><button class="btn" id="cp">Kopieren</button><button class="btn" id="rst">Fortschritt löschen</button><button class="btn primary" data-close>Schließen</button></div>','wide');
-  ccBind();
+  ccBind();$('#clsView').onclick=classView;
   $('#tUnlock').onchange=e=>{s.unlockAll=e.target.checked;save();renderMap();};
   $('#tShop').onchange=e=>{s.shopOn=e.target.checked;save();renderCoins();if(!$('#shopView').hidden&&!s.shopOn)showMap();};
   $('#tBox').onchange=e=>{s.boxOn=e.target.checked;save();if(!$('#shopView').hidden)renderShop();};
