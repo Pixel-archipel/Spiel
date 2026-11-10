@@ -1,7 +1,7 @@
 # Pixel im Bit-Archipel
 
 Lernspiel zur Informatik in Klasse 5 und 6 (Kernlehrplan Informatik NRW).
-Spielen im Browser: https://pixel-archipel.github.io/spiel/
+Spielen im Browser: https://pixel-archipel.github.io/Spiel/
 
 Der Spielstand wird nur im Browser des Geräts gespeichert. Es werden keine Daten an einen Server gesendet.
 Das Spiel lädt keine Inhalte von anderen Servern nach.
