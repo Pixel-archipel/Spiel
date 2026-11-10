@@ -2291,8 +2291,34 @@ function tPassword(r){
 /* ===== Inseln für IF3 (Automaten und KI), IF4 (Informatiksysteme), IF5 (Informatik, Mensch und Gesellschaft) ===== */
 function emojiThumb(icons,c1,c2){return (c,w,h)=>{const g=c.createLinearGradient(0,0,w,h);g.addColorStop(0,c1);g.addColorStop(1,c2);c.fillStyle=g;c.fillRect(0,0,w,h);
   c.font='54px system-ui,"Apple Color Emoji","Segoe UI Emoji",sans-serif';c.textAlign='center';c.textBaseline='middle';icons.forEach((e,i)=>c.fillText(e,w/2+(i-(icons.length-1)/2)*84,h/2+(i%2?10:-6)));};}
+
+/* Inselbilder als Vektorgrafik (keine Emoji-Abhängigkeit, z. B. für Safari) */
+function islBase(c,w,h){const g=c.createLinearGradient(0,0,0,h);g.addColorStop(0,'#5cc3d3');g.addColorStop(1,'#2f8db0');c.fillStyle=g;c.fillRect(0,0,w,h);
+  c.strokeStyle='rgba(255,255,255,.35)';c.lineWidth=2;for(let i=0;i<6;i++){const x=(i*137)%w,y=20+(i*53)%(h-30);c.beginPath();c.moveTo(x,y);c.quadraticCurveTo(x+10,y-5,x+20,y);c.stroke();}
+  const cx=w/2;c.fillStyle='#e9d39a';c.beginPath();c.ellipse(cx,h*.78,Math.min(w*.42,260),34,0,0,7);c.fill();c.fillStyle='#7cc46a';c.beginPath();c.ellipse(cx,h*.74,Math.min(w*.38,236),24,0,0,7);c.fill();return cx;}
+function rr(c,x,y,w,h,r,f){c.beginPath();c.roundRect?c.roundRect(x,y,w,h,r):c.rect(x,y,w,h);c.fillStyle=f;c.fill();}
+function gear(c,x,y,r,f){c.fillStyle=f;c.beginPath();for(let i=0;i<16;i++){const a=i*Math.PI/8,R=i%2?r:r*1.25;c.lineTo(x+Math.cos(a)*R,y+Math.sin(a)*R);}c.closePath();c.fill();c.fillStyle='#fff8';c.beginPath();c.arc(x,y,r*.4,0,7);c.fill();}
+function thumbAuto(c,w,h){const x=islBase(c,w,h),b=h*.74;
+  rr(c,x-70,b-62,100,62,4,'#c96f4a');rr(c,x-58,b-90,18,30,2,'#8a4a35');c.fillStyle='#ddd';c.beginPath();c.arc(x-49,b-96,6,0,7);c.arc(x-38,b-100,7,0,7);c.fill();
+  c.fillStyle='#c96f4a';c.beginPath();c.moveTo(x-70,b-62);c.lineTo(x-45,b-78);c.lineTo(x-45,b-62);c.lineTo(x-20,b-78);c.lineTo(x-20,b-62);c.lineTo(x+5,b-78);c.lineTo(x+5,b-62);c.lineTo(x+30,b-78);c.lineTo(x+30,b-62);c.fill();
+  rr(c,x-58,b-44,16,16,2,'#ffe9a8');rr(c,x-32,b-44,16,16,2,'#ffe9a8');rr(c,x-6,b-30,22,30,2,'#5a3a2a');
+  gear(c,x+58,b-44,18,'#f2b13b');gear(c,x+84,b-66,11,'#e98a2e');
+  rr(c,x+104,b-60,18,46,5,'#333');[['#e5484d',0],['#f2c94c',1],['#3fbf6f',2]].forEach(([f,i])=>{c.fillStyle=f;c.beginPath();c.arc(x+113,b-52+i*14,5,0,7);c.fill();});rr(c,x+111,b-14,4,14,1,'#555');}
+function thumbHafen(c,w,h){const x=islBase(c,w,h),b=h*.74;
+  rr(c,x+20,b-6,120,10,2,'#8a5a3a');for(let i=0;i<5;i++)rr(c,x+26+i*26,b,5,22,1,'#6b4429');
+  c.fillStyle='#e5484d';c.beginPath();c.moveTo(x+150,b+8);c.lineTo(x+250>w-10?w-10:x+250,b+8);c.lineTo(x+232>w-20?w-24:x+232,b+30);c.lineTo(x+162,b+30);c.fill();
+  [['#3b82c4',0],['#f2b13b',1],['#3fbf6f',2]].forEach(([f,i])=>rr(c,x+166+i*24,b-12,22,20,2,f));
+  rr(c,x-12,b-96,8,96,1,'#f2b13b');rr(c,x-12,b-96,76,7,1,'#f2b13b');c.strokeStyle='#555';c.lineWidth=2;c.beginPath();c.moveTo(x+52,b-89);c.lineTo(x+52,b-56);c.stroke();rr(c,x+42,b-56,22,14,2,'#3b82c4');
+  rr(c,x-110,b-58,64,44,5,'#2b2f3a');rr(c,x-104,b-52,52,32,3,'#7fd4ff');rr(c,x-84,b-14,12,8,1,'#2b2f3a');rr(c,x-98,b-7,40,5,2,'#2b2f3a');
+  c.strokeStyle='#fff';c.lineWidth=2.5;[10,18,26].forEach(r=>{c.beginPath();c.arc(x-78,b-70,r,-2.3,-.85);c.stroke();});}
+function thumbRat(c,w,h){const x=islBase(c,w,h),b=h*.74;
+  c.fillStyle='#f4efe4';c.beginPath();c.moveTo(x-70,b-66);c.lineTo(x,b-90);c.lineTo(x+70,b-66);c.fill();rr(c,x-66,b-66,132,8,1,'#e2d8c4');
+  for(let i=0;i<5;i++)rr(c,x-58+i*27,b-58,10,52,2,'#f4efe4');rr(c,x-70,b-8,140,8,1,'#e2d8c4');
+  rr(c,x-1,b-106,3,18,1,'#555');c.fillStyle='#a99be8';c.beginPath();c.moveTo(x+2,b-106);c.lineTo(x+22,b-100);c.lineTo(x+2,b-94);c.fill();
+  rr(c,x+92,b-40,34,28,5,'#f2b13b');c.strokeStyle='#f2b13b';c.lineWidth=5;c.beginPath();c.arc(x+109,b-40,10,Math.PI,0);c.stroke();c.fillStyle='#8a5a12';c.beginPath();c.arc(x+109,b-28,4,0,7);c.fill();
+  [[-120,'#3b82c4'],[-100,'#e98a2e'],[-80,'#3fbf6f']].forEach(([dx,f])=>{c.fillStyle=f;c.beginPath();c.arc(x+dx,b-30,8,0,7);c.fill();rr(c,x+dx-9,b-22,18,18,6,f);});}
 const IS_AUTO=ISLANDS.length;
-ISLANDS.push({name:'Automatenfabrik',concept:'Automaten und KI',core:'Denkkern',open:true,thumb:emojiThumb(['🎰','🌳','🧠'],'#ffe3c2','#f3b37a'),
+ISLANDS.push({name:'Automatenfabrik',concept:'Automaten und KI',core:'Denkkern',open:true,thumb:thumbAuto,
   klp56:['IF3-01','IF3-02','IF3-03','IF3-04','IF3-05'],wp:['WP8-AF-01','WP8-AF-02','WP8-AF-03','WP8-AF-04','WP8-KI-01','WP8-KI-03','WP10-KI-03'],
   diag:'Typische Hürden: Zustand und Eingabe werden verwechselt, Eingaben ohne Pfeil werden als Fehler statt als „nichts passiert“ gelesen. Beim Entscheidungsbaum wird oft die auffälligste statt der trennenden Eigenschaft gewählt. Beim Neuron werden negative Gewichte erst spät verstanden. Enaktiv vorher oder nachher: Fischkarten ausschneiden und im Sitzkreis nach Fragen auf Stapel sortieren (Vorlage nicht im Spiel, Lehrkraft erstellt sie aus den Fischen der Level 5).'});
 /* Geräte-Bilder: zeigen den Zustand so, wie man ihn am echten Gerät sieht */
@@ -2412,7 +2438,7 @@ LEVELS.push(
 );
 /* ===== IF4 Informatiksysteme ===== */
 const IS_HAFEN=ISLANDS.length;
-ISLANDS.push({name:'Maschinenhafen',concept:'Informatiksysteme',core:'Hafenkern',open:true,thumb:emojiThumb(['🖥️','📡','💾'],'#cfe6ff','#8fb7e8'),
+ISLANDS.push({name:'Maschinenhafen',concept:'Informatiksysteme',core:'Hafenkern',open:true,thumb:thumbHafen,
   klp56:['IF4-01','IF4-02','IF4-03','IF4-04','IF4-05','IF4-06','IF4-07'],wp:['WP8-IS-01','WP8-IS-02','WP8-IS-03','WP8-IS-04','WP10-IS-02','WP10-IS-04'],
   diag:'Typische Hürden: Touchscreen und Headset sind Ein- und Ausgabe zugleich (bewusst nicht im Spiel, gut für ein Unterrichtsgespräch). Arbeitsspeicher und dauerhafter Speicher werden verwechselt. Pfade werden von innen nach außen gelesen. Größenangaben MB und GB ohne Vorstellung. Hilfe: echte Geräte zeigen und die Bauteile benennen, Ordnerstruktur an der Tafel als Baum zeichnen.'});
 LEVELS.push(
@@ -2494,7 +2520,7 @@ LEVELS.push(
 );
 /* ===== IF5 Informatik, Mensch und Gesellschaft ===== */
 const IS_RAT=ISLANDS.length;
-ISLANDS.push({name:'Inselrat',concept:'Informatik, Mensch und Gesellschaft',core:'Ratskern',open:true,thumb:emojiThumb(['🔒','🗳️','👥'],'#e2dcff','#a99be8'),
+ISLANDS.push({name:'Inselrat',concept:'Informatik, Mensch und Gesellschaft',core:'Ratskern',open:true,thumb:thumbRat,
   klp56:['IF5-01','IF5-02','IF5-03','IF5-04','IF5-05'],wp:['WP8-MG-01','WP8-MG-03','WP8-MG-04','WP8-MG-05','WP8-MG-06','WP10-MG-03','WP10-MG-04','WP10-MG-05'],
   diag:'Diese Insel ersetzt kein Unterrichtsgespräch. Die Antworten sind bewusst eindeutig gewählt, echte Fälle sind oft strittiger. Gut als Einstieg: Ergebnisse der Sortieraufgaben vergleichen und strittige Karten diskutieren. Im Passwortlevel tippen SuS nur Übungspasswörter, das Spiel speichert sie nicht. Für Gymnasien (IF5-02G: erläutern statt benennen) die Begründungen mündlich oder schriftlich einfordern.'});
 LEVELS.push(
