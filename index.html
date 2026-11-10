@@ -381,6 +381,10 @@ details.trl{margin-top:.5rem;border-top:1px dashed var(--line);padding-top:.35re
 .whybox{background:#fff4e5;color:#3a2410;border:2px solid #f0a35e;border-radius:12px;padding:10px 14px;margin:0 0 10px;text-align:left}.whybox b,.whybox li,.whybox .wyc{color:#3a2410}.whybox .gl{color:#7a3d00}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .whybox{background:#3a2a17;border-color:#f0a35e}:root:not([data-theme="light"]) .whybox b,:root:not([data-theme="light"]) .whybox li,:root:not([data-theme="light"]) .whybox .wyc{color:#fff3e2}:root:not([data-theme="light"]) .whybox small{color:#f3cfa5}:root:not([data-theme="light"]) .whybox .gl{color:#ffd18a}}
 :root[data-theme="dark"] .whybox{background:#3a2a17}:root[data-theme="dark"] .whybox b,:root[data-theme="dark"] .whybox li,:root[data-theme="dark"] .whybox .wyc{color:#fff3e2}:root[data-theme="dark"] .whybox small{color:#f3cfa5}.whybox ul{margin:6px 0;padding-left:18px}.whybox li{margin:4px 0;line-height:1.4}.whybox .wyc{font-weight:700}.whybox small{color:#7a5a3a}.whybox .wtr{display:block;margin-top:2px;font-size:.95em;opacity:.92}
+.bdict{margin:10px 0 0;border:2px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);padding:6px 12px}.bdict summary{cursor:pointer;font-weight:700;padding:4px 0;min-height:32px}
+.bdict ul{list-style:none;margin:6px 0;padding:0}.bdl li{display:flex;gap:10px;align-items:flex-start;padding:5px 0;border-top:1px solid var(--line)}.bdb{flex:0 0 auto;color:#fff;font-weight:700;border-radius:8px;padding:3px 9px;font-size:.9rem;min-width:9.5em}.bdx{flex:1;font-size:.92rem;line-height:1.35}
+.bdt{display:block;margin-top:2px;color:var(--muted)}.bdh{margin:8px 0 2px;font-weight:700;font-size:.9rem}.bdc{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:4px 12px}.bdc li{font-size:.9rem}.bdc .bdt{font-size:.85rem}
+@media (max-width:500px){.bdl li{flex-direction:column;gap:3px}.bdb{min-width:0}}
 </style>
 
 <div id="nojs" style="margin:16px;padding:16px 18px;border-radius:14px;background:#fff3cd;color:#3d2b00;border:2px solid #e0a32e;font:17px/1.5 Verdana,sans-serif;position:relative;z-index:50">
@@ -443,6 +447,7 @@ Computer: Datei mit Chrome, Edge, Firefox oder Safari öffnen. Das Spiel braucht
         <button class="btn ghost" id="clearBtn">Leeren</button>
       </div>
       <div id="blockly"></div>
+      <details class="bdict" id="bDict" hidden></details>
       <details class="pyprev" id="pyPrevBox"><summary>So sieht dein Programm in Python aus</summary><pre id="pyPrev"></pre></details>
       <div id="pyEd" hidden>
         <div class="snips" id="snips" aria-label="Befehle einfügen"></div>
@@ -2922,6 +2927,50 @@ uk:["Телефон спершу тренувався на багатьох фо
 Object.keys(WHY_TR).forEach(l=>{if(TRL[l]){TRL[l].why={};WHY_DE.forEach((d,i)=>{if(WHY_TR[l][i])TRL[l].why[d]=WHY_TR[l][i];});}});
 function trWhy(de){const l=lang2();return l&&TRL[l].why?TRL[l].why[de]||'':'';}
 
+/* Block-Wörterbuch: deutsche Blöcke mit einfacher Erklärung und Übersetzung (maschinell, nicht gegengelesen) */
+const BDICT={
+ px_start:['▶ wenn Start gedrückt','Hier beginnt dein Programm.'],
+ px_forward:['gehe vorwärts','Pixel geht ein Feld nach vorn.'],
+ px_left:['drehe links','Pixel dreht sich auf der Stelle nach links.'],
+ px_right:['drehe rechts','Pixel dreht sich auf der Stelle nach rechts.'],
+ px_paint:['male Feld','Pixel malt das Feld unter sich an.'],
+ px_collect:['sammle Kristall','Pixel nimmt den Kristall auf seinem Feld.'],
+ px_repeat:['wiederhole … mal','Alles in der Klammer so oft wie die Zahl.'],
+ px_until:['wiederhole bis Ziel erreicht','Wiederholt, bis Pixel im Portal steht.'],
+ px_if:['falls …','Nur wenn die Bedingung stimmt.'],
+ px_ifelse:['falls … sonst','Oben, wenn die Bedingung stimmt. Unten, wenn nicht.'],
+ px_def:['★ Neuer Befehl','Hier baust du deinen eigenen Befehl.'],
+ px_call:['★ führe … aus','Führt deinen eigenen Befehl aus.'],
+ px_harv:['abbauen','Der Roboter fällt den Baum vor sich.'],
+ px_dig:['graben','Der Roboter gräbt im Sand nach Erz.'],
+ px_drop:['abladen','Der Roboter legt seine Sachen ins Lager.'],
+ px_sell:['verkaufen','Der Roboter verkauft seine Sachen am Lager für Taler.'],
+ px_build:['bauen','Der Roboter baut ein Haus auf dem Bauplatz.'],
+ px_forever:['wiederhole für immer','Läuft, bis die Schicht um ist.'],
+ px_while:['wiederhole solange …','Wiederholt, solange die Bedingung stimmt.'],
+ px_vif:['falls … stimmt','Nur wenn die Bedingung stimmt.'],
+ px_vifelse:['falls … sonst','Oben, wenn die Bedingung stimmt. Unten, wenn nicht.']};
+const BCOND=['Weg vorn frei','Weg links frei','Weg rechts frei','Kristall hier','Baum vorn','Stein vorn','Hindernis vorn','Kristall vorn','Lager vorn','Bauplatz vorn','Sand hier','Rucksack voll','Rucksack leer','solange','solange nicht','stimmt','nicht stimmt','sonst'];
+const BTR={
+en:{blk:{px_start:['when Start is pressed','Your program starts here.'],px_forward:['go forward','Pixel moves one square forward.'],px_left:['turn left','Pixel turns left on the spot.'],px_right:['turn right','Pixel turns right on the spot.'],px_paint:['paint square','Pixel paints the square below it.'],px_collect:['collect crystal','Pixel picks up the crystal on its square.'],px_repeat:['repeat … times','Everything inside the bracket, as often as the number says.'],px_until:['repeat until goal reached','Repeats until Pixel is in the portal.'],px_if:['if …','Only if the condition is true.'],px_ifelse:['if … else','Top part if the condition is true. Bottom part if not.'],px_def:['★ new command','Here you build your own command.'],px_call:['★ run …','Runs your own command.'],px_harv:['harvest','The robot cuts down the tree in front of it.'],px_dig:['dig','The robot digs in the sand for ore.'],px_drop:['unload','The robot puts its things into the storehouse.'],px_sell:['sell','The robot sells its things at the storehouse for coins.'],px_build:['build','The robot builds a house on the building site.'],px_forever:['repeat forever','Runs until the shift is over.'],px_while:['repeat while …','Repeats while the condition is true.'],px_vif:['if … is true','Only if the condition is true.'],px_vifelse:['if … else','Top part if the condition is true. Bottom part if not.']},
+ cond:['way ahead free','way left free','way right free','crystal here','tree ahead','stone ahead','obstacle ahead','crystal ahead','storehouse ahead','building site ahead','sand here','backpack full','backpack empty','while','while not','is true','is not true','else']},
+tr:{blk:{px_start:['Başlat basılınca','Programın burada başlar.'],px_forward:['ileri git','Pixel bir kare ileri gider.'],px_left:['sola dön','Pixel olduğu yerde sola döner.'],px_right:['sağa dön','Pixel olduğu yerde sağa döner.'],px_paint:['kareyi boya','Pixel altındaki kareyi boyar.'],px_collect:['kristali topla','Pixel karesindeki kristali alır.'],px_repeat:['… kez tekrarla','Parantezin içindeki her şey sayı kadar.'],px_until:['hedefe varana kadar tekrarla','Pixel portala girene kadar tekrarlar.'],px_if:['eğer …','Sadece koşul doğruysa.'],px_ifelse:['eğer … değilse','Koşul doğruysa üst kısım. Değilse alt kısım.'],px_def:['★ yeni komut','Burada kendi komutunu yaparsın.'],px_call:['★ … çalıştır','Kendi komutunu çalıştırır.'],px_harv:['kes','Robot önündeki ağacı keser.'],px_dig:['kaz','Robot kumda maden arar.'],px_drop:['boşalt','Robot eşyalarını depoya koyar.'],px_sell:['sat','Robot eşyalarını depoda para karşılığı satar.'],px_build:['inşa et','Robot inşaat alanına bir ev yapar.'],px_forever:['sonsuza kadar tekrarla','Vardiya bitene kadar çalışır.'],px_while:['… olduğu sürece tekrarla','Koşul doğru olduğu sürece tekrarlar.'],px_vif:['eğer … doğruysa','Sadece koşul doğruysa.'],px_vifelse:['eğer … değilse','Koşul doğruysa üst kısım. Değilse alt kısım.']},
+ cond:['önü boş','solu boş','sağı boş','burada kristal','önde ağaç','önde taş','önde engel','önde kristal','önde depo','önde inşaat alanı','burada kum','sırt çantası dolu','sırt çantası boş','olduğu sürece','olmadığı sürece','doğruysa','doğru değilse','değilse']},
+ar:{blk:{px_start:['عند الضغط على ابدأ','هنا يبدأ برنامجك.'],px_forward:['تقدّم إلى الأمام','بيكسل يتقدم مربعًا واحدًا.'],px_left:['استدر يسارًا','بيكسل يستدير يسارًا في مكانه.'],px_right:['استدر يمينًا','بيكسل يستدير يمينًا في مكانه.'],px_paint:['لوّن المربع','بيكسل يلوّن المربع الذي تحته.'],px_collect:['اجمع البلّورة','بيكسل يأخذ البلّورة من مربعه.'],px_repeat:['كرّر … مرات','كل ما داخل القوس بعدد الرقم.'],px_until:['كرّر حتى الوصول إلى الهدف','يكرّر حتى يصل بيكسل إلى البوابة.'],px_if:['إذا …','فقط إذا كان الشرط صحيحًا.'],px_ifelse:['إذا … وإلا','الجزء العلوي إذا كان الشرط صحيحًا، والسفلي إذا لم يكن.'],px_def:['★ أمر جديد','هنا تبني أمرك الخاص.'],px_call:['★ نفّذ …','ينفّذ أمرك الخاص.'],px_harv:['اقطع','الروبوت يقطع الشجرة التي أمامه.'],px_dig:['احفر','الروبوت يحفر في الرمل بحثًا عن المعدن.'],px_drop:['أفرغ','الروبوت يضع أغراضه في المخزن.'],px_sell:['بِع','الروبوت يبيع أغراضه في المخزن مقابل نقود.'],px_build:['ابنِ','الروبوت يبني بيتًا في موقع البناء.'],px_forever:['كرّر إلى الأبد','يعمل حتى تنتهي المناوبة.'],px_while:['كرّر ما دام …','يكرّر ما دام الشرط صحيحًا.'],px_vif:['إذا كان … صحيحًا','فقط إذا كان الشرط صحيحًا.'],px_vifelse:['إذا … وإلا','الجزء العلوي إذا كان الشرط صحيحًا، والسفلي إذا لم يكن.']},
+ cond:['الطريق أمامي فارغ','الطريق يسارًا فارغ','الطريق يمينًا فارغ','هنا بلّورة','شجرة أمامي','حجر أمامي','عائق أمامي','بلّورة أمامي','المخزن أمامي','موقع بناء أمامي','هنا رمل','الحقيبة ممتلئة','الحقيبة فارغة','ما دام','ما دام لا','صحيح','غير صحيح','وإلا']},
+uk:{blk:{px_start:['коли натиснуто «Старт»','Тут починається твоя програма.'],px_forward:['іди вперед','Піксель іде на одне поле вперед.'],px_left:['повернись ліворуч','Піксель повертається ліворуч на місці.'],px_right:['повернись праворуч','Піксель повертається праворуч на місці.'],px_paint:['розфарбуй поле','Піксель розфарбовує поле під собою.'],px_collect:['збери кристал','Піксель бере кристал на своєму полі.'],px_repeat:['повтори … разів','Усе в дужці стільки разів, скільки каже число.'],px_until:['повторюй, доки не досягнеш мети','Повторює, доки Піксель не буде в порталі.'],px_if:['якщо …','Лише якщо умова правильна.'],px_ifelse:['якщо … інакше','Верхня частина, якщо умова правильна. Нижня, якщо ні.'],px_def:['★ нова команда','Тут ти створюєш власну команду.'],px_call:['★ виконай …','Виконує твою власну команду.'],px_harv:['зрубай','Робот рубає дерево перед собою.'],px_dig:['копай','Робот копає пісок у пошуках руди.'],px_drop:['розвантаж','Робот кладе свої речі на склад.'],px_sell:['продай','Робот продає свої речі на складі за монети.'],px_build:['збудуй','Робот будує будинок на будмайданчику.'],px_forever:['повторюй завжди','Працює, доки не скінчиться зміна.'],px_while:['повторюй, поки …','Повторює, поки умова правильна.'],px_vif:['якщо … правильно','Лише якщо умова правильна.'],px_vifelse:['якщо … інакше','Верхня частина, якщо умова правильна. Нижня, якщо ні.']},
+ cond:['попереду вільно','ліворуч вільно','праворуч вільно','тут кристал','попереду дерево','попереду камінь','попереду перешкода','попереду кристал','попереду склад','попереду будмайданчик','тут пісок','рюкзак повний','рюкзак порожній','поки','поки не','правильно','неправильно','інакше']}};
+Object.keys(BTR).forEach(l=>{if(TRL[l]){TRL[l].blk=BTR[l].blk;TRL[l].cond={};BCOND.forEach((c,i)=>TRL[l].cond[c]=BTR[l].cond[i]);}});
+/* Wörterbuch unter der Blockfläche: bei Leichter Sprache oder gewählter Übersetzung */
+function renderBDict(types){const box=$('#bDict');if(!box)return;const l=lang2();if(!glOn()||!types||!types.length){box.hidden=true;box.innerHTML='';return;}
+  const T=l?TRL[l]:null,dir=l?LANGS[l].dir:'ltr';const tr=(s)=>s?'<span class="bdt" lang="'+l+'" dir="'+dir+'">🌐 '+esc(s)+'</span>':'';
+  const col=t=>{try{return Blockly.Blocks[t]&&({px_start:COL.start,px_forward:COL.move,px_left:COL.move,px_right:COL.move,px_paint:'#0f8b8d',px_collect:COL.gem,px_repeat:COL.loop,px_until:COL.loop,px_forever:COL.loop,px_while:COL.loop,px_if:COL.cond,px_ifelse:COL.cond,px_vif:COL.cond,px_vifelse:COL.cond,px_def:COL.fn,px_call:COL.fn}[t]||'#7a5a2a');}catch(e){return '#777';}};
+  const rows=types.filter(t=>BDICT[t]).map(t=>{const d=BDICT[t],x=T&&T.blk?T.blk[t]:null;return '<li><span class="bdb" style="background:color-mix(in srgb,'+col(t)+' 78%,#000)">'+esc(d[0])+'</span><span class="bdx">'+esc(d[1])+(x?tr(x[0]+': '+x[1]):'')+'</span></li>';}).join('');
+  const hasC=types.some(t=>/if|until|while/.test(t)),vill=types.some(t=>/^px_v|px_while/.test(t));
+  const cl=hasC?(vill?BCOND.filter(c=>c!=='Kristall hier'):BCOND.slice(0,4).concat(['sonst'])):[];
+  const conds=cl.length?'<p class="bdh">Bedingungen im Block „falls“</p><ul class="bdc">'+cl.map(c=>'<li><b>'+esc(c)+'</b>'+(T&&T.cond&&T.cond[c]?tr(T.cond[c]):'')+'</li>').join('')+'</ul>':'';
+  box.hidden=false;box.innerHTML='<summary>📖 Block-Wörterbuch'+(l?' · '+esc(LANGS[l].n):'')+'</summary><ul class="bdl">'+rows+'</ul>'+conds;if(l)box.open=true;}
+
 /* ===== Zustand ===== */
 const KEY='pixel-archipel-v1';
 let S={name:'',prog:{},settings:{sound:true,easy:false,calm:false,speed:1,unlockAll:false,noLimit:false,pyOn:true},seenWelcome:false};
@@ -3130,6 +3179,7 @@ function buildWorkspace(){
   ws=Blockly.inject('blockly',{toolbox:{kind:'flyoutToolbox',contents:cur.blocks.map(k=>({kind:'block',type:vTB(k)||TB[k]}))},
     renderer:'zelos',theme,trashcan:false,sounds:false,maxBlocks:max,zoom:{wheel:false,startScale:small?.72:.85,controls:false,maxScale:1.6,minScale:.5},
     move:{scrollbars:true,drag:true,wheel:true},grid:{spacing:28,length:2,colour:dark?'#1d3a44':'#d6e8e5',snap:false}});
+  try{renderBDict(['px_start'].concat(cur.blocks.map(k=>vTB(k)||TB[k])));}catch(e){}
   const st=P_(cur.id).ws;
   try{if(st)Blockly.serialization.workspaces.load(st,ws);}catch(e){}
   if(!ws.getTopBlocks(false).some(b=>b.type==='px_start')){ws.clear();Blockly.serialization.workspaces.load(progToState({main:[]}),ws);}
