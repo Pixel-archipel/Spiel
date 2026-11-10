@@ -271,7 +271,7 @@ textarea.csv{width:100%;min-height:120px;font-family:ui-monospace,Consolas,monos
 .bbx{display:inline-flex;gap:4px;margin:.2rem .4rem .2rem 0}
 .bbx span{width:38px;height:46px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;font:700 1.1rem ui-monospace,Consolas,monospace;background:var(--panel);position:relative;padding-top:10px}
 .bbx span small{position:absolute;top:2px;font-size:.62rem;color:var(--muted);font-weight:600}
-.bbx span.on{background:#ffd84d;border-color:#c48a00;color:#3a2a00;box-shadow:0 0 12px rgba(255,200,61,.7)}
+.bbx span.on{background:#ffd84d;border-color:#c48a00;color:#3a2a00;box-shadow:0 0 12px rgba(255,200,61,.7)}.bbx span.on small{color:#6b4e00}
 .wgroups{display:flex;flex-wrap:wrap;gap:.3rem .6rem}
 .quiz{display:flex;flex-direction:column;gap:.7rem;background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:1rem}
 .ctab summary{cursor:pointer;font-weight:700;color:var(--muted)}
@@ -378,7 +378,9 @@ svg.auto .tok{fill:var(--accent);stroke:#fff;stroke-width:2}
 .glpop p{margin:0}.glpop .btn{align-self:flex-end}
 details.trl{margin-top:.5rem;border-top:1px dashed var(--line);padding-top:.35rem}details.trl summary{cursor:pointer;font-weight:700;color:var(--muted);min-height:32px}
 .trl[dir=rtl]{text-align:right;font-size:1.05em}p.trl{color:var(--muted)}
-.whybox{background:#fff4e5;border:2px solid #f0a35e;border-radius:12px;padding:10px 14px;margin:0 0 10px;text-align:left}.whybox ul{margin:6px 0;padding-left:18px}.whybox li{margin:4px 0;line-height:1.4}.whybox .wyc{font-weight:700}.whybox small{color:#7a5a3a}
+.whybox{background:#fff4e5;color:#3a2410;border:2px solid #f0a35e;border-radius:12px;padding:10px 14px;margin:0 0 10px;text-align:left}.whybox b,.whybox li,.whybox .wyc{color:#3a2410}.whybox .gl{color:#7a3d00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .whybox{background:#3a2a17;border-color:#f0a35e}:root:not([data-theme="light"]) .whybox b,:root:not([data-theme="light"]) .whybox li,:root:not([data-theme="light"]) .whybox .wyc{color:#fff3e2}:root:not([data-theme="light"]) .whybox small{color:#f3cfa5}:root:not([data-theme="light"]) .whybox .gl{color:#ffd18a}}
+:root[data-theme="dark"] .whybox{background:#3a2a17}:root[data-theme="dark"] .whybox b,:root[data-theme="dark"] .whybox li,:root[data-theme="dark"] .whybox .wyc{color:#fff3e2}:root[data-theme="dark"] .whybox small{color:#f3cfa5}.whybox ul{margin:6px 0;padding-left:18px}.whybox li{margin:4px 0;line-height:1.4}.whybox .wyc{font-weight:700}.whybox small{color:#7a5a3a}
 </style>
 
 <div id="nojs" style="margin:16px;padding:16px 18px;border-radius:14px;background:#fff3cd;color:#3d2b00;border:2px solid #e0a32e;font:17px/1.5 Verdana,sans-serif;position:relative;z-index:50">
