@@ -5113,7 +5113,8 @@ function renderBDict(types){const box=$('#bDict');if(!box)return;const l=lang2()
 /* ===== Klassenübersicht für Lehrkräfte: Spielstand-Dateien einlesen (nur Anzeige, nichts wird gespeichert) ===== */
 const CV={list:[],tab:'sus',sel:null,bad:0};
 function cvIsl(){const s=new Set();CV.list.forEach(o=>{if(o.cls&&Array.isArray(o.cls.islands))o.cls.islands.forEach(k=>s.add(k));});
-  return s.size?[...s].filter(k=>ISLANDS[k]).sort((a,b)=>a-b):ISLANDS.map((x,k)=>k);}
+  if(s.size)return [...s].filter(k=>ISLANDS[k]).sort((a,b)=>a-b);
+  const used=ISLANDS.map((x,k)=>k).filter(k=>CV.list.some(o=>LEVELS.some(l=>l.isl===k&&o.prog[l.id]&&((o.prog[l.id].tries||0)>0||o.prog[l.id].stars))));return used.length?used:ISLANDS.map((x,k)=>k);}
 function cvLv(k){return LEVELS.map((l,i)=>[l,i]).filter(([l])=>l.isl===k);}
 function cvP(o,l){return o.prog[l.id]||{};}
 function cvTries(p){return p.solveTries!=null?p.solveTries:(p.stars?p.tries||0:null);}
@@ -5150,7 +5151,7 @@ function cvRender(){const out=$('#cvOut');if(!out)return;const I=cvIsl(),n=CV.li
       CV.list.map((o,j)=>{let A=0,B=0;const cells=I.map(k=>{const [a,b]=cvPct(o,k);A+=a;B+=b;return '<td class="'+cvCls(a,b)+'">'+a+' / '+b+'</td>';}).join('');const fl=cvFlags(o);
         const cnt={};fl.forEach(x=>cnt[x.k]=(cnt[x.k]||0)+1);
         return '<tr'+(CV.sel===j?' class="sel"':'')+'><td><button class="lnk" data-cvs="'+j+'">'+esc(o.name||'ohne Namen')+'</button></td>'+cells+'<td class="'+cvCls(A,B)+'"><b>'+A+' / '+B+'</b></td><td>'+(fl.length?Object.entries(cnt).map(([k,c])=>'<span class="cvchip k'+k+'">'+c+'× '+CV_KIND[k][0]+'</span>').join(' '):'<span class="note">keine</span>')+'</td></tr>';}).join('')+'</tbody></table></div>'+
-      '<p class="note">Zahlen = Sterne von möglichen Sternen. Farbe: hell = wenig, kräftig = viel geschafft. Auf einen Namen tippen für Details.</p>';
+      '<p class="note">Zahlen = Sterne von möglichen Sternen. Ohne Klassencode werden nur Inseln gezeigt, auf denen jemand gespielt hat. Farbe: hell = wenig, kräftig = viel geschafft. Auf einen Namen tippen für Details.</p>';
     if(CV.sel!=null&&CV.list[CV.sel])h+=cvDetail(CV.list[CV.sel]);}
   else h+=cvLevels();
   out.innerHTML=h;
@@ -5170,10 +5171,10 @@ function cvLevels(){const I=cvIsl(),n=CV.list.length;const rows=[];
     const tr=ps.map(cvTries).filter(x=>x!=null);const avg=tr.length?tr.reduce((a,b)=>a+b,0)/tr.length:null;
     const ck=l.check?ps.filter(p=>p.chkOk||p.chkNo):[];const ckOk=ck.filter(p=>p.chkOk&&!p.chkNo).length;const sol=ps.filter(p=>(p.hints||0)>=3).length;
     const er={};ps.forEach(p=>p.errR&&Object.entries(p.errR).forEach(([r,c])=>er[r]=(er[r]||0)+c));const top=Object.entries(er).sort((a,b)=>b[1]-a[1])[0];
-    const hard=started>=2&&(solved/started<.6||(avg!=null&&avg>=4)||(ck.length>=2&&ckOk/ck.length<.6));
+    const hard=started>=2&&(solved/started<.6||(avg!=null&&avg>=4)||(ck.length>=2&&ckOk/ck.length<.6)||(top&&top[1]>=started));
     rows.push('<tr'+(hard?' class="hard"':'')+'><td>'+esc(ISLANDS[k].name)+' '+localNo(i)[0]+'<br><span class="note">'+esc(l.name)+'</span></td><td class="'+cvCls(solved,n)+'">'+solved+' / '+n+(started>solved?'<br><span class="note">'+(started-solved)+' begonnen</span>':'')+'</td><td class="n">'+(avg==null?'–':avg.toFixed(1))+'</td><td>'+(l.check?(ck.length?ckOk+' / '+ck.length+' im ersten Anlauf':'–'):'<span class="note">keine</span>')+'</td><td class="n">'+sol+'</td><td>'+(top?'Runde '+(+top[0]+1)+' ('+top[1]+' Fehler)<br><span class="note">'+esc(String((l.rounds[top[0]]||{}).q||'').slice(0,60))+'</span>':'')+'</td><td>'+(hard?'⚠️ besprechen':'')+'</td></tr>');}));
   return '<div class="tbl"><table class="cvt"><thead><tr><th>Level</th><th>gelöst</th><th>Ø Versuche bis Lösung</th><th>Verstehensfrage richtig</th><th>Lösungstipp gesehen</th><th>häufigste Fehlerrunde</th><th></th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div>'+
-    '<p class="note">⚠️ markiert Level, bei denen weniger als 60 % der SuS, die angefangen haben, es gelöst haben, im Schnitt 4 oder mehr Versuche nötig waren oder die Verstehensfrage oft falsch war. Diese Level eignen sich für eine gemeinsame Besprechung im Plenum. Die Grenzen sind gesetzte Faustwerte, keine geprüften Normen.</p>';}
+    '<p class="note">⚠️ markiert Level, bei denen weniger als 60 % der SuS, die angefangen haben, es gelöst haben, im Schnitt 4 oder mehr Versuche nötig waren, die Verstehensfrage oft falsch war oder eine Runde im Schnitt mindestens einen Fehlversuch pro Person hatte. Diese Level eignen sich für eine gemeinsame Besprechung im Plenum. Die Grenzen sind gesetzte Faustwerte, keine geprüften Normen.</p>';}
 function cvCsv(){const rows=[['Name','gesichert am','Insel','Level','Titel','Sterne','Versuche bis Lösung','Versuche gesamt','Tipps','Verstehensfrage','Fehler je Runde','gelöst am']];
   CV.list.forEach(o=>cvIsl().forEach(k=>cvLv(k).forEach(([l,i])=>{const p=cvP(o,l);rows.push([o.name||'',o.savedAt?o.savedAt.slice(0,10):'',ISLANDS[k].name,localNo(i)[0],l.name,p.stars||0,cvTries(p)??'',p.tries||0,p.hints||0,!l.check?'':p.chkOk?(p.chkNo?'richtig nach '+p.chkNo+'x falsch':'richtig'):p.chkNo?'falsch':'',p.errR?Object.entries(p.errR).map(([r,n])=>'R'+(+r+1)+':'+n).join(' '):'',p.solvedAt?p.solvedAt.slice(0,10):'']);})));
   return '﻿'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');}
