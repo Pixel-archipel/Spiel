@@ -93,6 +93,10 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .msg{border-radius:14px;padding:.6rem .8rem;font-weight:700;display:flex;gap:.6rem;align-items:flex-start}
 .msg.bad{background:color-mix(in srgb,var(--bad) 14%,var(--panel));color:var(--ink);border:2px solid color-mix(in srgb,var(--bad) 45%,transparent)}
 .msg.info{background:var(--chip);border:2px solid var(--line)}
+.ziel{margin:.2rem 0 0;padding:.55rem .8rem;border-left:5px solid var(--accent);border-radius:10px;background:color-mix(in srgb,var(--accent) 9%,var(--panel));color:var(--ink);font-size:1rem;line-height:1.4}
+.merk{margin:.4rem 0;padding:.7rem .9rem;border:2px solid var(--ok);border-radius:14px;background:color-mix(in srgb,var(--ok) 10%,var(--panel));color:var(--ink);line-height:1.45}
+.merk b{display:block;margin-bottom:.2rem}
+.dyn{margin:.2rem 0;color:var(--ink);font-size:.95rem;text-align:center}
 .msg .face{flex:none;width:34px;height:34px}
 .controls{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
 .controls .speed{display:flex;align-items:center;gap:.4rem;margin-left:auto;font-weight:700;font-size:.9rem;color:var(--muted)}
@@ -116,9 +120,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .bubble.easy{font-size:1.25rem;line-height:1.6}
 .row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
 .row.end{justify-content:flex-end}
-.stars{font-size:2.6rem;letter-spacing:.2rem;text-align:center;color:#e6a100;line-height:1}
+.stars{font-size:2.6rem;letter-spacing:.2rem;text-align:center;color:var(--star);line-height:1}
 .stars span{display:inline-block;animation:pop .45s cubic-bezier(.3,1.6,.5,1) both}
-.stars span.off{color:var(--line)}
+.stars span.off{color:color-mix(in srgb,var(--muted) 85%,var(--panel))}
 @keyframes pop{from{transform:scale(0) rotate(-40deg)}}
 .set{display:grid;gap:.6rem}
 .set label{display:flex;gap:.7rem;align-items:flex-start;background:var(--chip);border-radius:14px;padding:.6rem .8rem;cursor:pointer}
@@ -3496,6 +3500,7 @@ function puzzleWin(extra){const pr=P_(cur.id);pr.tries++;save();const st0=puzzle
 /* --- Leuchtturm --- */
 function setupBitsRound(){
   const n=cur.lamps.length,r=cur.rounds[PZ.round];
+  if(PZ.round===0)PZ.log=[];
   B={lamps:cur.lamps,on:Array(n).fill(0),target:null,showTarget:true,shipX:null,flash:false,bubble:null};
   if(cur.type==='bits')B.target=r;else{B.on=r.split('').map(Number);B.showTarget=false;B.target=parseInt(r,2);B.flash=true;}
   layout();renderBitsPanel();showMsg(null);
@@ -3503,11 +3508,11 @@ function setupBitsRound(){
 function renderBitsPanel(){
   const p=$('#puz .pzbody'),n=cur.lamps.length,max=cur.lamps.reduce((a,b)=>a+b,0);
   if(cur.type==='bits'){
-    const sum=B.on.reduce((a,v,i)=>a+v*cur.lamps[i],0),help=cur.helper||S.settings.easy;
+    const sum=B.on.reduce((a,v,i)=>a+v*cur.lamps[i],0),help=S.settings.easy||(cur.helper&&PZ.round===0),lit=cur.lamps.filter((v,i)=>B.on[i]);
     p.innerHTML='<p class="big">Das Schiff soll an <b>Steg '+B.target+'</b> anlegen.</p>'+
       '<div class="lamps" role="group" aria-label="Lampen">'+cur.lamps.map((v,i)=>'<button class="lamp '+(B.on[i]?'on':'')+'" data-i="'+i+'" aria-pressed="'+!!B.on[i]+'"><span class="bulb"></span><span class="val">'+v+'</span><span class="bit">'+B.on[i]+'</span></button>').join('')+'</div>'+
-      '<p class="mono">Bitfolge: <b>'+B.on.join('')+'</b>'+(help?'  ·  Summe: <b>'+sum+'</b>':'')+'</p>'+
-      '<div class="row"><button class="btn primary" id="send">📡 Signal senden</button></div>';
+      '<p class="mono">Bitfolge: <b>'+B.on.join('')+'</b>'+(help?'  ·  Rechnung: <b>'+(lit.length?lit.join(' + ')+' = '+sum:'0')+'</b>':'')+'</p>'+
+      (!help&&cur.helper&&PZ.round===1?'<p class="note">Ab jetzt rechnest du selbst. Fang bei der größten Lampe an: Passt ihr Wert noch in die Zahl?</p>':'')+'<div class="row"><button class="btn primary" id="send">📡 Signal senden</button></div>';
     p.querySelectorAll('.lamp').forEach(b=>b.onclick=()=>{if(PZ.busy)return;const i=+b.dataset.i;B.on[i]=1-B.on[i];SND.play(B.on[i]?'ok':'click');showMsg(null);renderBitsPanel();});
     $('#send').onclick=()=>sendShip(B.on.reduce((a,v,i)=>a+v*cur.lamps[i],0));
   }else{
@@ -3523,13 +3528,14 @@ async function sendShip(v){
   if(cur.type==='bits'){B.flash=true;B.on.forEach((o,i)=>{if(o)SND.tone(520+i*140,.15,'sine',.09,i*.12);});await sleep(900*D);B.flash=false;}
   const x0=postX(0)-60,x1=postX(v);
   await tween(Math.min(2200,600+Math.abs(x1-x0)*3)*D,k=>{B.shipX=x0+(x1-x0)*k;});
-  const ok=v===B.target;
+  const ok=v===B.target;if(ok)PZ.log.push(cur.type==='bits'?'Steg '+v+' = '+B.on.join(''):B.on.join('')+' = Steg '+v);
   if(ok){SND.play('ok');B.bubble={text:'Angelegt an Steg '+v+'!',ok:true};const r=$('#cv').getBoundingClientRect(),s=r.width/BW;FX.burst(r.left+x1*s,r.top+(BH-60)*s,['#ffd166','#ff8f5e','#62e0e6'],18,5,'star');
     PZ.state[PZ.round]='ok';renderRounds();await sleep(1100*D);B.bubble=null;
     if(PZ.round<cur.rounds.length-1){PZ.round++;renderRounds();setupBitsRound();PZ.busy=false;return;}
-    PZ.busy=false;puzzleWin(cur.type==='bits'?'Jede Lampe ist ein Bit: an ist 1, aus ist 0. Mit '+cur.lamps.length+' Bits gibt es '+Math.pow(2,cur.lamps.length)+' verschiedene Signale.':'Du hast Binärzahlen decodiert. So liest auch ein Computer Daten.');return;}
+    PZ.busy=false;puzzleWin('Dein Logbuch: '+PZ.log.join(', ')+'. Jede Lampe ist ein Bit: an ist 1, aus ist 0.'+(cur.type==='bits'?' Mit '+cur.lamps.length+' Bits gibt es '+Math.pow(2,cur.lamps.length)+' verschiedene Signale.':''));return;}
   B.bubble={text:'Steg '+v+'? Hier ist niemand.',ok:false};
-  puzzleWrong(cur.type==='bits'?'Dein Signal '+B.on.join('')+' bedeutet Steg '+v+'. Gesucht war Steg '+B.target+'.':'Das Signal '+B.on.join('')+' bedeutet nicht Steg '+v+'. Zähl die Werte der leuchtenden Lampen noch einmal zusammen.');
+  const litV=cur.lamps.filter((x,i)=>B.on[i]),d=v-B.target;
+  puzzleWrong(cur.type==='bits'?'Dein Signal '+B.on.join('')+' bedeutet '+(litV.length>1?litV.join(' + ')+' = ':'')+v+'. Gesucht war Steg '+B.target+'. Das ist '+Math.abs(d)+(d>0?' zu viel.':' zu wenig.'):'Du hast Steg '+v+' gewählt. Es leuchten die Lampen mit den Werten '+litV.join(', ').replace(/, (\d+)$/,' und $1')+'. Zähl nur diese zusammen, die dunklen zählen nicht.');
   await sleep(1200*D);B.bubble=null;await tween(700*D,k=>{B.shipX=x1+(x0-x1)*k;});PZ.busy=false;
 }
 
@@ -5110,6 +5116,125 @@ function renderBDict(types){const box=$('#bDict');if(!box)return;const l=lang2()
   const conds=cl.length?'<p class="bdh">Bedingungen im Block „falls“</p><ul class="bdc">'+cl.map(c=>'<li><b>'+esc(c)+'</b>'+(T&&T.cond&&T.cond[c]?tr(T.cond[c]):'')+'</li>').join('')+'</ul>':'';
   box.hidden=false;box.innerHTML='<summary>📖 Block-Wörterbuch'+(l?' · '+esc(LANGS[l].n):'')+'</summary><ul class="bdl">'+rows+'</ul>'+conds;if(l)box.open=true;}
 
+/* ===== Lernziel (vor dem Level) und Erkenntnis (nach dem Level) =====
+   [0] = „Hier lernst du“: steht im Auftrag, bevor es losgeht.
+   [1] = „Das hast du herausgefunden“: steht nach dem Lösen. Erst der Bezug auf das,
+         was die SuS gerade getan haben, dann die allgemeine Regel. */
+const ZL={
+ L1:['Du lernst, dass ein Programm eine Folge von Befehlen ist, die genau der Reihe nach ausgeführt werden.',
+     'Pixel hat jeden Block genau einmal und genau in deiner Reihenfolge ausgeführt. So arbeitet jeder Computer: Ein Programm ist eine Folge von Befehlen, eine Sequenz.'],
+ L2:['Du lernst, dass Drehen ein eigener Befehl ist und die Blickrichtung zählt.',
+     '„drehe rechts“ hat Pixel nicht bewegt, nur gedreht. Danach war „vorwärts“ eine andere Richtung. Der Computer weiß nicht, was du meinst. Er macht nur, was dasteht.'],
+ L3:['Du lernst, dass ein Befehl nur wirkt, wenn er an der richtigen Stelle steht.',
+     '„sammle Kristall“ hat nur auf dem Kristallfeld funktioniert. Ein Schritt zu früh oder zu spät, und es klappt nicht. Bei einer Sequenz ist die Reihenfolge entscheidend.'],
+ L4:['Du lernst, in einem langen Programm ein Muster zu erkennen.',
+     'Du hast viele Blöcke gebraucht. Dabei hast du immer wieder dieselben Blöcke hintereinander gesetzt: vorwärts, drehen, vorwärts, drehen. Wiederholungen kann man kürzer schreiben. Das kommt auf der nächsten Insel.'],
+ L5:['Du lernst, ein Programm zuerst zu planen und dann Schritt für Schritt zu testen.',
+     'Erst planen, dann bauen, dann testen: So arbeiten auch echte Programmiererinnen und Programmierer. Mit „Schritt“ findest du die Stelle, an der ein Fehler passiert.'],
+ L6:['Du lernst die Zählschleife kennen: einmal bauen, mehrmals ausführen.',
+     'Statt neunmal „gehe vorwärts“ reichen zwei Blöcke: „wiederhole 9 mal“ und darin „gehe vorwärts“. Eine Schleife macht Programme kurz und übersichtlich.'],
+ L7:['Du lernst, welche Befehle in die Schleife gehören.',
+     'Bei jedem Kristall musstest du dasselbe tun: gehen und sammeln. Genau diese Befehle kamen in die Schleife. Das, was sich wiederholt, kommt in die Schleife.'],
+ L8:['Du lernst, Schleifen ineinander zu stecken.',
+     'Eine Seite des Quadrats ist eine kleine Schleife. Die vier Seiten zusammen sind eine große Schleife. Eine Schleife in einer Schleife heißt verschachtelte Schleife.'],
+ L9:['Du lernst, das Teil zu finden, das sich wiederholt.',
+     'Die ganze Treppe besteht aus einer einzigen Stufe, die sich wiederholt. Wer das Muster findet, braucht nur noch wenige Blöcke. Muster finden ist eine wichtige Fähigkeit in der Informatik.'],
+ L10:['Du lernst, ein Problem in kleine und große Wiederholungen zu zerlegen.',
+     'Die Kristalle einer Terrasse waren die innere Schleife, die drei Terrassen die äußere. Große Aufgaben werden leichter, wenn man sie in Teile zerlegt.'],
+ L11:['Du lernst eine Schleife kennen, die nicht zählt, sondern prüft.',
+     'Dein Programm hat auf allen drei Karten funktioniert, obwohl die Wege verschieden lang waren. „wiederhole bis Ziel“ prüft jedes Mal neu, ob Pixel schon da ist. Man nennt das eine bedingte Schleife.'],
+ L12:['Du lernst die Verzweigung kennen: Pixel entscheidet selbst.',
+     'Pixel hat nur dort gesammelt, wo wirklich ein Kristall lag. „falls“ prüft eine Bedingung. Nur wenn sie stimmt, werden die Befehle darin ausgeführt.'],
+ L13:['Du lernst, was ein Programm tun soll, wenn die Bedingung nicht stimmt.',
+     '„falls … sonst“ hat zwei Wege. Einer davon wird immer ausgeführt, aber nie beide. So reagiert dein Programm auf jede Situation.'],
+ L14:['Du lernst, mehrere Bedingungen nacheinander zu prüfen.',
+     'Erst prüft Pixel eine Richtung. Nur wenn die nicht frei ist, prüft er die nächste. Die Reihenfolge der Fragen bestimmt, wie Pixel sich entscheidet.'],
+ L15:['Du lernst, Schleife und Verzweigung zu einem Algorithmus zu verbinden.',
+     'Dein Programm hat drei verschiedene Karten geschafft. Es ist also allgemein und nicht nur für eine Karte gebaut. Eine solche allgemeine Lösung nennt man Algorithmus.'],
+ L16:['Du lernst, einen eigenen Befehl zu bauen und mehrmals zu benutzen.',
+     'Du hast den Sprung einmal gebaut und dreimal benutzt. Willst du den Sprung ändern, musst du das nur an einer Stelle tun. Eigene Befehle machen Programme kürzer und leichter zu verbessern.'],
+ L17:['Du lernst, eigene Befehle mit Schleifen zu verbinden.',
+     'Befehl A holt einen Arm ab, die Schleife wiederholt ihn viermal. Jedes Teil hat genau eine Aufgabe. So bleibt auch ein großes Programm übersichtlich.'],
+ L18:['Du setzt alles zusammen: Befehl, Schleife und Verzweigung.',
+     'Dein Programm hat bei jedem Test andere Kristalle gefunden. Dafür hast du eigene Befehle, Schleifen und Verzweigungen kombiniert. Das sind die Grundbausteine fast aller Programme.'],
+ Z1:['Du lernst, wie man Zahlen nur mit „an“ und „aus“ darstellt.',
+     'Jede Zahl von 0 bis 7 hat genau ein Lampensignal. So findest du es: Fang bei der größten Lampe an. Passt ihr Wert noch in die Zahl, schalte sie an und zieh ihn ab. Sonst bleibt sie aus. Dann kommt die nächste Lampe.'],
+ Z2:['Du lernst, warum jede neue Lampe doppelt so viel wert ist.',
+     'Mit 3 Lampen gab es 8 Signale, mit 4 Lampen schon 16. Jede neue Lampe verdoppelt die Möglichkeiten. Darum haben die Lampen die Werte 1, 2, 4, 8. Das ist das Zweiersystem, mit dem Computer rechnen.'],
+ Z3:['Du lernst, eine Bitfolge in eine Zahl zurückzuübersetzen.',
+     'Du hast nur die Werte der Lampen mit 1 zusammengezählt. Die Lampen mit 0 zählen nicht. Genau so übersetzt ein Computer Bits in Zahlen. Senden und Lesen funktionieren nur, wenn beide dieselben Lampenwerte kennen.'],
+ Z10:['Du lernst, wie ein Computer Buchstaben als Bits speichert.',
+     'Du hast jede 5er-Gruppe zuerst in eine Zahl und dann mit der Tabelle in einen Buchstaben übersetzt. Ohne die Tabelle wäre 01000 nur die Zahl 8. Computer brauchen für Buchstaben immer eine vereinbarte Code-Tabelle.'],
+ Z4:['Du lernst, dass ein Bild für den Computer aus Zahlen besteht.',
+     'Aus Nullen und Einsen ist ein Herz entstanden. Jede Ziffer war ein Pixel. Für den Computer ist jedes Bild eine Tabelle aus Zahlen. Bei Farbfotos sind es viel mehr Bits pro Pixel.'],
+ Z5:['Du lernst, wie man Daten kürzer schreiben kann, ohne etwas zu verlieren.',
+     'Der Kurzcode brauchte weniger Zahlen als der Bitcode, und das Bild war trotzdem genau gleich. Das klappt, weil sich viele gleiche Felder wiederholen. Daten so zu verkürzen nennt man Komprimieren.'],
+ Z11:['Du lernst, dass Bits erst durch eine Vereinbarung eine Bedeutung bekommen.',
+     'Dieselbe Bitfolge 01001 war einmal die Zahl 9, einmal der Buchstabe I und einmal eine Bildzeile. Die Bits haben sich nicht verändert, nur die Lese-Art. Daten werden erst zur Information, wenn man weiß, wie man sie lesen muss.'],
+ Z6:['Du lernst, ein Bild mit einem Programm zu erzeugen.',
+     'Dein Programm hat den Rahmen gemalt. Die vier Seiten waren gleich, deshalb hat eine Schleife gereicht. Auch Computergrafik entsteht so: Ein Programm legt fest, welche Pixel welche Farbe bekommen.'],
+ Z7:['Du lernst, wie man eine Nachricht durch Umstellen der Buchstaben versteckt.',
+     'Alle Buchstaben waren die ganze Zeit da, nur in anderer Reihenfolge. Erst mit der richtigen Stabdicke, also dem Schlüssel, wurde die Nachricht lesbar. Dieses Umstellen heißt Transposition.'],
+ Z8:['Du lernst, wie man eine Nachricht durch Ersetzen der Buchstaben verschlüsselt.',
+     'Mit dem Schlüssel 3 hast du jeden Buchstaben durch einen anderen ersetzt und so zurückübersetzt. Wer den Schlüssel kennt, kann lesen. Wer ihn nicht kennt, sieht nur Buchstabensalat. Das heißt Substitution.'],
+ Z9:['Du lernst, warum eine Verschlüsselung viele mögliche Schlüssel braucht.',
+     'Du hast den Funkspruch ohne Schlüssel geknackt, nur durch Ausprobieren. Beim Verschiebecode gibt es nur 25 Schlüssel. Sichere Verschlüsselung hat so viele Schlüssel, dass selbst Computer sie nicht alle ausprobieren können.'],
+ E1:['Du übst, eine lange Sequenz vorher genau zu planen.',
+     'Bei einem langen Weg passieren Fehler leicht. Wer vorher plant und dann Stück für Stück testet, findet sie schneller.'],
+ E2:['Du übst, die Blickrichtung von Pixel bei jeder Drehung mitzudenken.',
+     'Links und rechts hängen davon ab, wohin Pixel gerade schaut, nicht davon, wie du auf den Bildschirm schaust. Diesen Blickwechsel braucht man beim Programmieren oft.'],
+ E3:['Du übst, ein großes Muster in kleine Wiederholungen zu zerlegen.',
+     'Ohne Schleifen wären es fast 90 Blöcke gewesen. Mit dem richtigen Muster reichen wenige. Je besser man ein Problem zerlegt, desto kürzer wird das Programm.'],
+ E4:['Du übst, drei Schleifen ineinander zu stecken.',
+     'Seite, Quadrat und vier Quadrate waren drei Ebenen von Wiederholung. Jede Ebene ist eine eigene Schleife. So entstehen große Muster aus einem kleinen Teil.'],
+ E5:['Du lernst einen echten Algorithmus kennen: die Rechte-Hand-Regel.',
+     'Dein Programm hat drei verschiedene Irrgärten geschafft, ohne die Karte zu kennen. Eine feste Regel, die bei vielen Aufgaben funktioniert, ist ein Algorithmus.'],
+ E6:['Du lernst, einen bestehenden Algorithmus zu erweitern.',
+     'Du musstest nicht neu anfangen. Du hast die Rechte-Hand-Regel um das Sammeln ergänzt. Gute Algorithmen kann man Schritt für Schritt erweitern.'],
+ E7:['Du übst, ein Programm mit zwei eigenen Befehlen zu ordnen.',
+     'Befehl A macht ein Beet, Befehl B geht zum nächsten. Das Hauptprogramm liest sich jetzt fast wie ein Satz. Gut benannte Teile machen Programme verständlich.'],
+ E8:['Du übst, eigene Befehle und Schleifen geschickt zu kombinieren.',
+     'Hinauf und hinunter waren zwei verschiedene Befehle, die Wiederholung kam durch Schleifen. Wer Teile klug kombiniert, löst auch große Aufgaben mit wenigen Blöcken.'],
+ V0:['Du wendest alles an, was du kannst, und planst Programme für echte Aufgaben.',''],
+ A1:['Du lernst, was ein Automat ist und wie man ihn als Zustandsdiagramm zeichnet.',
+     'Du hast vorhergesagt, wohin der Automat springt, nur mit Blick auf Zustand und Pfeil. Ein Automat hängt nur von seinem Zustand und der Eingabe ab. Fehlt ein Pfeil, passiert nichts. Das hast du bei der Falle gesehen.'],
+ A2:['Du lernst, das Verhalten einer Ampel mit einem Zustandsdiagramm genau zu beschreiben.',
+     'Die Fußgängerampel hat ohne Knopfdruck nicht umgeschaltet, weil es dafür keinen Pfeil gab. Das Diagramm beschreibt genau, was passiert, und auch, was nicht passiert.'],
+ A3:['Du lernst, selbst einen Automaten zu entwerfen.',
+     'Du hast für jeden Zustand und jede Eingabe einen Pfeil festgelegt, also für alle vier Fälle. Nur so weiß der Automat in jeder Lage, was er tun soll. Beim Entwerfen prüft man immer alle Kombinationen.'],
+ A4:['Du lernst, KI von Geräten mit festen Regeln zu unterscheiden.',
+     'Beim Sortieren war die Frage immer: Hat das Gerät aus Beispielen gelernt? Geräte mit festen Regeln machen immer dasselbe. Eine KI hat aus Beispielen gelernt und kann sich deshalb auch irren.'],
+ A5:['Du lernst, wie ein Computer mit einem Entscheidungsbaum aus Beispielen lernt.',
+     'Dein Baum hat die Trainingsfische richtig sortiert und danach auch neue Fische. Eine einzige Frage hat nicht gereicht, zwei hintereinander schon. So lernt ein Computer aus Beispielen Regeln. Mit neuen Daten prüft man, ob sie stimmen.'],
+ A6:['Du lernst, wie ein künstliches Neuron entscheidet und wie es lernt.',
+     'Zuerst hast du die Gewichte selbst eingestellt. Danach hat das Neuron sie aus Beispielen selbst verbessert. Genau das bedeutet maschinelles Lernen: Gewichte werden anhand von Beispielen angepasst.'],
+ H1:['Du lernst das EVA-Prinzip: Eingabe, Verarbeitung, Ausgabe.',
+     'Bei jedem Gerät und an der Kasse hast du dieselben drei Schritte gefunden. Fast jedes Informatiksystem arbeitet so. Mit EVA kannst du jedes neue Gerät verstehen.'],
+ H2:['Du lernst die wichtigsten Bauteile eines Computers und ihre Aufgaben kennen.',
+     'Jedes Bauteil hatte genau eine Aufgabe. Der Prozessor rechnet. Der Arbeitsspeicher merkt sich etwas nur, solange Strom da ist. Der dauerhafte Speicher behält es. Darum geht Ungespeichertes beim Stromausfall verloren.'],
+ H3:['Du lernst, was vernetzte Geräte sind und welchen Weg Daten nehmen.',
+     'Die Chatnachricht ging nicht direkt zum anderen Handy, sondern über Router, Internet und Server. Vernetzte Geräte tauschen Daten über viele Stationen aus. Auf jeder Station könnten sie gespeichert werden.'],
+ H4:['Du lernst, Dateien mit Ordnern, Pfaden und guten Namen zu ordnen.',
+     'Du hast Dateien in Ordner sortiert und den Pfad zu einer Datei gefunden. Ein guter Name und ein klarer Ordner helfen, eine Datei auch Wochen später wiederzufinden.'],
+ H5:['Du lernst, Speicherorte nach Erreichbarkeit, Platz und Sicherheit zu vergleichen.',
+     'USB-Stick und Cloud hatten beide Vorteile und Nachteile. Den einen besten Ort gibt es nicht. Wichtige Daten speichert man deshalb an mindestens zwei Orten.'],
+ H6:['Du lernst, mit Formeln und Diagrammen Daten auszuwerten.',
+     'Die Formel hat die Summe selbst ausgerechnet und rechnet neu, wenn sich eine Zahl ändert. Das Diagramm hat den besten Tag sofort sichtbar gemacht. So verarbeitet ein Computer Daten für dich.'],
+ R1:['Du lernst, personenbezogene Daten zu erkennen.',
+     'Beim Sortieren war die Frage immer: Kann man damit eine bestimmte Person erkennen? Auch ein Foto mit Schulschild verrät viel. Solche Daten gehören dir, und du darfst mitbestimmen, was mit ihnen passiert.'],
+ R2:['Du lernst, die Berechtigungen einer App kritisch zu prüfen.',
+     'Die Taschenlampe brauchte fast nichts, die Karten-App brauchte den Standort. Ob eine Berechtigung sinnvoll ist, hängt von der Aufgabe der App ab. Was sie nicht braucht, darfst du ablehnen.'],
+ R3:['Du lernst, Nutzen und Risiko beim Teilen von Daten abzuwägen.',
+     'Derselbe Live-Standort war praktisch und zugleich riskant. Ob Teilen gut ist, hängt davon ab, wer die Daten sieht und wie lange. Darum überlegt man vor dem Teilen, nicht danach.'],
+ R4:['Du lernst, woran man ein starkes Passwort erkennt.',
+     'Dein Übungspasswort wurde mit jeder erfüllten Regel stärker. Lang, gemischt und für jedes Konto anders: So schützt ein Passwort wirklich. Und es bleibt geheim, auch vor Freunden.'],
+ R5:['Du lernst, wie man seine Daten im Alltag schützt.',
+     'Bei der falschen Nachricht war das Warnzeichen der Druck: „sofort klicken, sonst gesperrt“. Bildschirmsperre, Updates, Backups und Vorsicht bei solchen Nachrichten schützen deine Daten.'],
+ R6:['Du lernst, wie Informatiksysteme die Arbeitswelt verändern.',
+     'Die Roboter hatten Vorteile, zum Beispiel schnelleres Packen, und Nachteile, zum Beispiel wegfallende Arbeitsplätze. Ob man sie einsetzt, entscheiden Menschen. Dafür wägt man Vor- und Nachteile ab, so wie der Inselrat.']
+};
+LEVELS.forEach(L=>{const z=ZL[L.id];if(z){L.ziel=z[0];if(z[1])L.merk=z[1];}});
+
 /* ===== Klassenübersicht für Lehrkräfte: Spielstand-Dateien einlesen (nur Anzeige, nichts wird gespeichert) ===== */
 const CV={list:[],tab:'sus',sel:null,bad:0};
 function cvIsl(){const s=new Set();CV.list.forEach(o=>{if(o.cls&&Array.isArray(o.cls.islands))o.cls.islands.forEach(k=>s.add(k));});
@@ -5490,12 +5615,12 @@ async function celebrate(stars,txt,lesson,already){
   const i=LEVELS.indexOf(cur),last=cur.id==='L18';let nx=LEVELS[i+1];if(nx&&(nx.isl!==cur.isl||!!nx.expert!==!!cur.expert))nx=null;const islEnd=!nx;const nIsl=!cur.expert&&cur.isl<3&&visIsl(cur.isl+1)?ISLANDS[cur.isl+1]:null,hasExp=!cur.expert&&LEVELS.some(l=>l.expert&&l.isl===cur.isl);
   const st='<div class="stars" aria-label="'+stars+' von 3 Sternen">'+[0,1,2].map(k=>'<span class="'+(k<stars?'':'off')+'" style="animation-delay:'+(k*.18)+'s">★</span>').join('')+'</div>';
   const nm=S.name?', '+esc(S.name):'';
-  let extra=(cur&&!cur.village&&cur.maps&&cur.maps.length>1?'<div class="msg ok"><span><b>Alle '+cur.maps.length+' Testkarten geschafft.</b> Dein Programm lief ohne Änderung auf verschiedenen Karten. Genau das ist gewollt: Es funktioniert allgemein und nicht nur für eine Karte.</span></div>':'')+(lesson?'<div class="msg info"><span><b>Gut zu wissen:</b> '+esc(lesson)+'</span></div>':'');
+  let extra=(cur&&!cur.village&&cur.maps&&cur.maps.length>1?'<div class="msg ok"><span><b>Alle '+cur.maps.length+' Testkarten geschafft.</b> Dein Programm lief ohne Änderung auf verschiedenen Karten. Genau das ist gewollt: Es funktioniert allgemein und nicht nur für eine Karte.</span></div>':'');const merk=cur.merk||lesson,dyn=lesson&&lesson!==cur.lesson&&lesson!==merk?lesson:null;const mk=(dyn?'<p class="dyn">'+esc(dyn)+'</p>':'')+(merk?'<div class="merk"><b>💡 Das hast du herausgefunden</b>'+esc(merk)+'</div>':'');
   if(islEnd&&firstTime)extra+='<div class="msg info"><span><b>'+esc(ISLANDS[cur.isl].core)+' gefunden!</b> '+(!last&&nIsl?'Eine neue Insel ist frei: '+esc(nIsl.name)+'. ':'')+(hasExp?'Auf dieser Insel warten jetzt auch zwei Expertenlevel.':'')+'</span></div>';
-  if(last){modal('<div class="speech"><canvas width="152" height="152" id="pp"></canvas><div class="bubble">'+(firstTime?'Alle vier Energiekerne der Algorithmen-Inseln sind an Bord'+nm+'! Mein Gleiter startet. Danke, ohne dich wäre ich noch im Nebel!'+(islandDone(4)?'':' Auf der Insel der Zeichen wartet übrigens noch der Funkkern.'):'Wieder geschafft'+nm+'!')+'</div></div>'+st+'<p style="text-align:center;margin:0">'+txt+'</p>'+extra+
+  if(last){modal('<div class="speech"><canvas width="152" height="152" id="pp"></canvas><div class="bubble">'+(firstTime?'Alle vier Energiekerne der Algorithmen-Inseln sind an Bord'+nm+'! Mein Gleiter startet. Danke, ohne dich wäre ich noch im Nebel!'+(islandDone(4)?'':' Auf der Insel der Zeichen wartet übrigens noch der Funkkern.'):'Wieder geschafft'+nm+'!')+'</div></div>'+st+'<p style="text-align:center;margin:0">'+txt+'</p>'+mk+extra+
       cl+'<p class="note" style="text-align:center;margin:0">Gesamt: '+totalStars()+' von '+LEVELS.length*3+' Sternen.</p><div class="row end"><button class="btn" data-close>Nochmal verbessern</button><button class="btn primary" id="toMap">Zur Seekarte</button></div>');
     botPortrait($('#pp'));$('#toMap').onclick=()=>{closeModal();showMap();};return;}
-  modal('<h2 style="text-align:center">Geschafft'+nm+'!</h2>'+st+'<p style="text-align:center;margin:0">'+esc(txt)+'</p>'+cl+extra+'<div class="row end"><button class="btn" data-close>Nochmal verbessern</button><button class="btn primary" id="nextBtn">Weiter ▶</button></div>');
+  modal('<h2 style="text-align:center">Geschafft'+nm+'!</h2>'+st+'<p style="text-align:center;margin:0">'+esc(txt)+'</p>'+mk+cl+extra+'<div class="row end"><button class="btn" data-close>Nochmal verbessern</button><button class="btn primary" id="nextBtn">Weiter ▶</button></div>');
   $('#nextBtn').onclick=()=>{closeModal();if(nx)openLevel(i+1);else showMap();};
   if(!nx)$('#nextBtn').textContent='Zur Seekarte';
 }
@@ -5514,7 +5639,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#ov').innerHTML)closeModa
 function showIntro(){
   const isl=ISLANDS[cur.isl],i=LEVELS.indexOf(cur);
   const t=S.settings.easy?cur.easy:cur.text;
-  modal('<div class="eyebrow">'+esc(isl.name)+' · '+(cur.village?'Freier Aufbau':'Level '+localNo(i)[0])+'</div><h2>'+esc(cur.name)+'</h2><div class="speech"><canvas width="152" height="152" id="pp"></canvas><div class="bubble'+(S.settings.easy?' easy':'')+'">'+glossify(esc(t))+(trLevel(cur.id)?trBlock(trLevel(cur.id)[0]):'')+'</div></div>'+
+  modal('<div class="eyebrow">'+esc(isl.name)+' · '+(cur.village?'Freier Aufbau':'Level '+localNo(i)[0])+'</div><h2>'+esc(cur.name)+'</h2><div class="speech"><canvas width="152" height="152" id="pp"></canvas><div class="bubble'+(S.settings.easy?' easy':'')+'">'+glossify(esc(t))+(trLevel(cur.id)?trBlock(trLevel(cur.id)[0]):'')+'</div></div>'+(cur.ziel?'<p class="ziel">🎯 <b>Lernziel:</b> '+esc(cur.ziel)+'</p>':'')+
     '<ul class="goals">'+goalItems().map(g=>'<li>'+esc(g.t)+'</li>').join('')+'</ul><div class="row end"><button class="btn primary" data-close>Los geht’s!</button></div>');
   botPortrait($('#pp'));}
 function showHint(){
