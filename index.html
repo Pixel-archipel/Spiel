@@ -93,6 +93,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .msg{border-radius:14px;padding:.6rem .8rem;font-weight:700;display:flex;gap:.6rem;align-items:flex-start}
 .msg.bad{background:color-mix(in srgb,var(--bad) 14%,var(--panel));color:var(--ink);border:2px solid color-mix(in srgb,var(--bad) 45%,transparent)}
 .msg.info{background:var(--chip);border:2px solid var(--line)}
+#disc{display:flex;flex-direction:column;gap:.7rem}
 .ziel{margin:.2rem 0 0;padding:.55rem .8rem;border-left:5px solid var(--accent);border-radius:10px;background:color-mix(in srgb,var(--accent) 9%,var(--panel));color:var(--ink);font-size:1rem;line-height:1.4}
 .merk{margin:.4rem 0;padding:.7rem .9rem;border:2px solid var(--ok);border-radius:14px;background:color-mix(in srgb,var(--ok) 10%,var(--panel));color:var(--ink);line-height:1.45}
 .merk b{display:block;margin-bottom:.2rem}
@@ -3486,7 +3487,7 @@ function openPuzzle(){
   else if(t==='quiz')renderQuiz();
   else if(t==='task'){PZ.sort=PZ.ord=PZ.au=PZ.bu=PZ.tr=PZ.nu=null;PZ.picked=null;renderTask();}
   renderGoals();renderRounds();
-  const od=$('#disc');if(od)od.remove();$('#puz .pzbody').hidden=false;if(cur.discover&&!P_(cur.id).stars)showDiscover();
+  $('#puz .pzbody').hidden=false;discPending=false;if(cur.discover&&!P_(cur.id).stars)showDiscover();
 }
 function renderRounds(){const el=$('#variants');const R=cur.rounds;if(!R){el.hidden=true;return;}el.hidden=false;
   el.innerHTML='<span>Runden:</span>'+R.map((r,i)=>{const s=PZ.state[i];return '<button disabled aria-pressed="'+(i===PZ.round)+'" class="'+(s==='ok'?'ok':'')+'">'+(s==='ok'?'✓ ':'')+'Runde '+(i+1)+'</button>';}).join('');}
@@ -3676,18 +3677,22 @@ function renderQuiz(){
   const q=$('#qIn');if(q){q.focus();q.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();}if(e.key==='Enter')check(q.value);};$('#qOk').onclick=()=>check(q.value);}
 }
 /* --- Entdecken vor dem Level --- */
-function showDiscover(){const d=cur.discover;if(!d)return;const box=document.createElement('div');box.className='disc';box.id='disc';
-  box.innerHTML='<div class="eyebrow">Erst mal nachdenken</div><p class="big">'+esc(d.q)+'</p><div class="opts">'+d.opts.map((o,i)=>'<button class="btn" data-d="'+i+'">'+esc(o)+'</button>').join('')+'</div><div id="discRes"></div>';
-  const body=$('#puz .pzbody');body.hidden=true;body.parentElement.insertBefore(box,body);
-  box.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const ok=+b.dataset.d===d.a;box.querySelectorAll('[data-d]').forEach(x=>{x.disabled=true;if(+x.dataset.d===d.a)x.classList.add('right');});if(!ok)b.classList.add('wrong');
-    SND.play(ok?'ok':'click');$('#discRes').innerHTML='<div class="msg '+(ok?'ok':'info')+'"><span><b>'+(ok?'Richtig!':'Nicht ganz.')+'</b> '+esc(d.explain)+'</span></div><div class="row"><button class="btn primary" id="discGo">Los geht’s ▶</button></div>';
-    $('#discGo').onclick=()=>{box.remove();body.hidden=false;};});}
+/* Entdeckerfrage als Popup: muss beantwortet werden, bevor die Aufgabe beginnt.
+   Ist gerade ein anderes Fenster offen (z. B. der Auftrag), kommt sie direkt danach. */
+const DISC_DONE={};let discPending=false;
+function showDiscover(){const d=cur.discover;if(!d||DISC_DONE[cur.id])return;
+  if($('#ov').innerHTML){discPending=true;return;}discPending=false;const lvl=cur;
+  modal('<div id="disc"><div class="eyebrow">Erst mal nachdenken</div><h2 style="margin:0">'+esc(d.q)+'</h2><p class="note" style="margin:.2rem 0 0">Beantworte die Frage, dann geht es los. Raten ist erlaubt.</p><div class="opts col">'+d.opts.map((o,i)=>'<button class="btn" data-d="'+i+'">'+esc(o)+'</button>').join('')+'</div><div id="discRes"></div></div>');
+  const ov=$('#ov');ov.firstChild.dataset.sticky=1;const f=ov.querySelector('[data-d]');if(f)f.focus();
+  ov.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const ok=+b.dataset.d===d.a;ov.querySelectorAll('[data-d]').forEach(x=>{x.disabled=true;if(+x.dataset.d===d.a)x.classList.add('right');});if(!ok)b.classList.add('wrong');
+    SND.play(ok?'ok':'click');$('#discRes').innerHTML='<div class="msg '+(ok?'ok':'info')+'"><span>'+(ok&&/^(Richtig|Genau)/.test(d.explain)?'':'<b>'+(ok?'Richtig!':'Nicht ganz.')+'</b> ')+esc(d.explain)+'</span></div><div class="row end"><button class="btn primary" id="discGo">Los geht’s ▶</button></div>';
+    const g=$('#discGo');g.focus();g.onclick=()=>{if(lvl===cur)DISC_DONE[lvl.id]=true;closeModal();};});}
 /* --- Verstehen nach dem Level: 3. Stern nur mit richtiger Antwort --- */
 function askCheck(cb){const c=cur.check;if(!c){cb(true);return;}
   modal('<div class="eyebrow">Verstehensfrage für den 3. Stern</div><h2 style="margin:0">'+esc(c.q)+'</h2><div class="opts col">'+c.opts.map((o,i)=>'<button class="btn" data-c="'+i+'">'+esc(o)+'</button>').join('')+'</div><div id="chkRes"></div>');
   $('#ov').firstChild.dataset.sticky=1;
   document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{const ok=+b.dataset.c===c.a;document.querySelectorAll('[data-c]').forEach(x=>{x.disabled=true;if(+x.dataset.c===c.a)x.classList.add('right');});if(!ok)b.classList.add('wrong');
-    SND.play(ok?'ok':'click');$('#chkRes').innerHTML='<div class="msg '+(ok?'ok':'info')+'"><span><b>'+(ok?'Richtig!':'Leider nicht.')+'</b> '+esc(c.explain)+'</span></div><div class="row end"><button class="btn primary" id="chkGo">Weiter</button></div>';
+    SND.play(ok?'ok':'click');$('#chkRes').innerHTML='<div class="msg '+(ok?'ok':'info')+'"><span>'+(ok&&/^(Richtig|Genau)/.test(c.explain)?'':'<b>'+(ok?'Richtig!':'Leider nicht.')+'</b> ')+esc(c.explain)+'</span></div><div class="row end"><button class="btn primary" id="chkGo">Weiter</button></div>';
     $('#chkGo').onclick=()=>{closeModal();cb(ok);};});}
 
 /* ===== Roboterdorf: quadratische Karte, Lager in der Mitte, Abschnitte ringsum ===== */
@@ -5630,12 +5635,12 @@ function showMsg(kind,text){const m=$('#msg');if(!kind){m.hidden=true;return;}m.
   botPortrait(m.querySelector('canvas'));const r=$('#retry');if(r)r.onclick=()=>resetRun();}
 
 /* ===== Overlays ===== */
-function modal(html,cls){const o=$('#ov');o.innerHTML='<div class="ov" role="dialog" aria-modal="true"><div class="card '+(cls||'')+'">'+html+'</div></div>';
+function modal(html,cls){const o=$('#ov');if(o.querySelector('#disc')&&cur&&!DISC_DONE[cur.id])discPending=true;o.innerHTML='<div class="ov" role="dialog" aria-modal="true"><div class="card '+(cls||'')+'">'+html+'</div></div>';
   o.querySelectorAll('[data-close]').forEach(b=>b.onclick=closeModal);
   o.firstChild.addEventListener('click',e=>{if(e.target===o.firstChild&&!o.firstChild.dataset.sticky)closeModal();});
   const f=o.querySelector('.btn.primary')||o.querySelector('button');if(f)f.focus();}
-function closeModal(){$('#ov').innerHTML='';}
-addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#ov').innerHTML)closeModal();});
+function closeModal(){$('#ov').innerHTML='';if(typeof discPending!=='undefined'&&discPending&&cur&&!$('#levelView').hidden)setTimeout(showDiscover,0);}
+addEventListener('keydown',e=>{const o=$('#ov');if(e.key==='Escape'&&o.innerHTML&&!(o.firstChild&&o.firstChild.dataset.sticky))closeModal();});
 function showIntro(){
   const isl=ISLANDS[cur.isl],i=LEVELS.indexOf(cur);
   const t=S.settings.easy?cur.easy:cur.text;
